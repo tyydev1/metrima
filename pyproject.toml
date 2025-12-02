@@ -1,0 +1,7 @@
+[project]
+name = "metrima"
+version = "0.1.0"
+description = "A small, comprehensive math library"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
