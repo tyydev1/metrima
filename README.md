@@ -19,7 +19,7 @@ Metrima is a Python math library that implements the `Fx` (Fixed-point) class to
 ## Installation
 
 ```bash
-pip install -e .
+pip install metrima
 ```
 
 ## Quick Start
@@ -118,7 +118,7 @@ Metrima includes comprehensive test suites comparing its accuracy against both s
 ### Run Interactive Tests
 
 ```bash
-python -m metrima
+metrimatest
 ```
 
 This launches an interactive menu where you can choose:
@@ -169,7 +169,3 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
-
----
-
-**Made with precision** ✨
