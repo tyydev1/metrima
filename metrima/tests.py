@@ -775,7 +775,7 @@ def test_fx():
         cprint(f"{test_count - pass_count} test containers failed", as_="bold red")
     cprint("="*40, as_="bold white")
 
-if __name__ == "__main__":
+def menu():
     cprint(_make_divider('='), as_="bold white")
     cprint("             Metrima v0.1.0 Testing Grounds              ", as_="bold white")
     cprint(" Welcome to Metrima! A small, comprehensive math library.", as_="bold white")
@@ -796,3 +796,6 @@ if __name__ == "__main__":
         exit(0)
     else:
         cprint('x Invalid choice', as_="bold red")
+
+if __name__ == "__main__":
+    menu()
