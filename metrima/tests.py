@@ -1,7 +1,7 @@
 from tinycolors import cprint, color, clib, cinput
-from main import _make_divider
-from fx import Fx, fx
-from custerror import MissingArgument
+from .main import _make_divider
+from .fx import Fx, fx
+from .errors import MissingArgument
 from decimal import Decimal
 
 

@@ -1,8 +1,4 @@
-from typing import Any
-from tinycolors import cprint, clib
-from custerror import UnexpectedTypeError
-
-
+from .errors import UnexpectedTypeError
 
 class Fx:
     def __init__(self, value: str | float | int) -> None:
@@ -16,6 +12,21 @@ class Fx:
             self.value: int = int(s)
 
         self._normalize()
+
+    def is_zero(self) -> bool:
+        return int(self.value) == 0
+
+    def is_positive(self) -> bool:
+        return int(self.value) > 0
+
+    def is_negative(self) -> bool:
+        return int(self.value) < 0
+
+    def copy(self) -> Fx:
+        new_copy = Fx.__new__(Fx)
+        new_copy.value = self.value
+        new_copy.scale = self.scale
+        return new_copy
 
     def _normalize(self):
         """Remove trailing zeros from the fractional part"""
@@ -176,24 +187,63 @@ class Fx:
     def __truediv__(self, other: Fx | float | int) -> Fx:
         if isinstance(other, (int, float)):
             other = fx(other)
-        if float(other) == 0:
+        if other.value == 0:
             raise ZeroDivisionError
-        return Fx(float(self) / float(other))
+
+        a, b, _ = self._align(other)
+
+        PRECISION = 10
+        numerator = a * (10 ** PRECISION)
+
+        result_value = numerator // b
+        result_scale = PRECISION
+
+        result = Fx.__new__(Fx)
+        result.value = result_value
+        result.scale = result_scale
+        result._normalize()
+        return result
 
     def __floordiv__(self, other: Fx | float | int) -> Fx:
         if isinstance(other, (int, float)):
             other = fx(other)
-        if float(other) == 0:
+        if other.value == 0:
             raise ZeroDivisionError
-        return Fx(float(self) // float(other))
+
+        a, b, common_scale = self._align(other)
+
+        numerator = a
+        denominator = b * (10 ** common_scale)
+
+        result_value = numerator // denominator
+
+        result = Fx.__new__(Fx)
+        result.value = result_value
+        result.scale = 0
+        result._normalize()
+        return result
 
     def __pow__(self, other: Fx | float | int) -> Fx:
         if isinstance(other, (int, float)):
             other = fx(other)
-        base = float(self)
+
         exponent = float(other)
-        result = base ** exponent
-        return Fx(result)
+        base = self
+
+        if other.scale == 0 and other.value >= 0:
+            exp_int = other.value
+            if exp_int == 0:
+                return Fx(1)
+            result = Fx(1)
+            for _ in range(exp_int):
+                result *= base
+            return result
+
+        else:
+            # NOTE: This uses floating-point arithmetic and may introduce errors.
+            base_float = float(base)
+            result_float = base_float ** exponent
+            return Fx(result_float)
 
     def __mod__(self, other: Fx | float | int) -> Fx:
         if isinstance(other, (int, float)):
