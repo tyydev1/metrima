@@ -1,4 +1,4 @@
-from .errors import UnexpectedTypeError
+from metrima.errors import UnexpectedTypeError
 
 class Fx:
     def __init__(self, value: str | float | int) -> None:
@@ -22,7 +22,7 @@ class Fx:
     def is_negative(self) -> bool:
         return int(self.value) < 0
 
-    def copy(self) -> Fx:
+    def copy(self) -> 'Fx':
         new_copy = Fx.__new__(Fx)
         new_copy.value = self.value
         new_copy.scale = self.scale
@@ -38,7 +38,7 @@ class Fx:
             self.value //= 10
             self.scale -= 1
 
-    def _align(self, other: Fx) -> tuple[int, int, int]:
+    def _align(self, other: 'Fx') -> tuple[int, int, int]:
         if not isinstance(other, Fx):
             raise UnexpectedTypeError(f"Unexpected type {type(other)}")
 
@@ -53,6 +53,10 @@ class Fx:
     def __repr__(self):
         return f"Fx(value={self.value}, scale={self.scale})"
 
+    def __hash__(self):
+        """Allows Fx objects to be used as dict keys or in sets."""
+        return hash((self.value, self.scale))
+
     #--- Conversions ---#
     def __float__(self):
         return self.value / (10 ** self.scale)
@@ -64,35 +68,39 @@ class Fx:
         if self.scale == 0:
             return str(self.value)
 
-        if self.value == 0:
-            return "0"
+        sign = "-" if self.value < 0 else ""
+        val_str = str(abs(self.value))
 
-        s = str(self.value).zfill(self.scale + 1)
-        return s[:-self.scale] + '.' + s[-self.scale:]
+        val_str = val_str.zfill(self.scale + 1)
+
+        integer_part = val_str[:-self.scale]
+        fractional_part = val_str[-self.scale:]
+
+        return f"{sign}{integer_part}.{fractional_part}"
 
     #--- Miscellaneous ---#
-    def __neg__(self) -> Fx:
+    def __neg__(self) -> 'Fx':
         result = Fx.__new__(Fx)
         result.value = -self.value
         result.scale = self.scale
         result._normalize()
         return result
 
-    def __pos__(self) -> Fx:
+    def __pos__(self) -> 'Fx':
         result = Fx.__new__(Fx)
         result.value = self.value
         result.scale = self.scale
         result._normalize()
         return result
 
-    def __abs__(self) -> Fx:
+    def __abs__(self) -> 'Fx':
         result = Fx.__new__(Fx)
         result.value = abs(self.value)
         result.scale = self.scale
         result._normalize()
         return result
 
-    def __round__(self, n: int = 0) -> Fx:
+    def __round__(self, n: int = 0) -> 'Fx':
         return Fx(round(float(self), n))
 
     def __index__(self) -> int:
@@ -102,58 +110,60 @@ class Fx:
         return format(float(self), format_spec)
 
     #--- Comparisons ---#
+    # --- Comparisons (FIXED) ---#
+    # All comparisons now use the precise Fx representation for the other operand.
+
+    def _to_fx(self, other):
+        """Helper to convert non-Fx types to Fx for safe comparison/arithmetic."""
+        if isinstance(other, Fx):
+            return other
+        if isinstance(other, (int, float, str)):
+            # Uses the global fx() function for conversion
+            return fx(other)
+        return NotImplemented
+
     def __eq__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a == b
-        if isinstance(other, (int, float)):
-            return float(self) == other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return False
+        a, b, _ = self._align(other)
+        return a == b
+
     def __ne__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a != b
-        if isinstance(other, (int, float)):
-            return float(self) != other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return True
+        a, b, _ = self._align(other)
+        return a != b
 
     def __gt__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a > b
-        if isinstance(other, (int, float)):
-            return float(self) > other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
+        a, b, _ = self._align(other)
+        return a > b
+
     def __ge__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a >= b
-        if isinstance(other, (int, float)):
-            return float(self) >= other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
+        a, b, _ = self._align(other)
+        return a >= b
 
     def __lt__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a < b
-        if isinstance(other, (int, float)):
-            return float(self) < other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
+        a, b, _ = self._align(other)
+        return a < b
+
     def __le__(self, other):
-        if isinstance(other, Fx):
-            a, b, _ = self._align(other)
-            return a <= b
-        if isinstance(other, (int, float)):
-            return float(self) <= other
-        return False
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
+        a, b, _ = self._align(other)
+        return a <= b
 
-    def __bool__(self):
-        return self.value != 0
+    # --- Arithmetics (Refactored for Cleanliness) --#
+    # Conversion logic simplified by using the helper self._to_fx()
 
-    #--- Arithmetics --#
-    def __add__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __add__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
         a, b, scale = self._align(other)
         result_value = a + b
         result = Fx.__new__(Fx)
@@ -162,9 +172,9 @@ class Fx:
         result._normalize()
         return result
 
-    def __sub__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __sub__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
         a, b, scale = self._align(other)
         result_value = a - b
         result = Fx.__new__(Fx)
@@ -173,9 +183,9 @@ class Fx:
         result._normalize()
         return result
 
-    def __mul__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __mul__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
         result_value = self.value * other.value
         scale = self.scale + other.scale
         result = Fx.__new__(Fx)
@@ -184,19 +194,20 @@ class Fx:
         result._normalize()
         return result
 
-    def __truediv__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __truediv__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
         if other.value == 0:
             raise ZeroDivisionError
 
         a, b, _ = self._align(other)
 
-        PRECISION = 10
-        numerator = a * (10 ** PRECISION)
+        calc_precision = max(16, self.scale + other.scale + 4)
+
+        numerator = a * (10 ** calc_precision)
 
         result_value = numerator // b
-        result_scale = PRECISION
+        result_scale = calc_precision
 
         result = Fx.__new__(Fx)
         result.value = result_value
@@ -204,18 +215,15 @@ class Fx:
         result._normalize()
         return result
 
-    def __floordiv__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __floordiv__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
         if other.value == 0:
             raise ZeroDivisionError
 
-        a, b, common_scale = self._align(other)
+        a, b, _ = self._align(other)  # common_scale is not needed here
 
-        numerator = a
-        denominator = b * (10 ** common_scale)
-
-        result_value = numerator // denominator
+        result_value = a // b
 
         result = Fx.__new__(Fx)
         result.value = result_value
@@ -223,9 +231,11 @@ class Fx:
         result._normalize()
         return result
 
-    def __pow__(self, other: Fx | float | int) -> Fx:
+    def __pow__(self, other: 'Fx' | float | int) -> 'Fx':
         if isinstance(other, (int, float)):
-            other = fx(other)
+            other = fx(other)  # Use fx to convert standard types
+        if not isinstance(other, Fx):
+            return NotImplemented
 
         exponent = float(other)
         base = self
@@ -245,9 +255,9 @@ class Fx:
             result_float = base_float ** exponent
             return Fx(result_float)
 
-    def __mod__(self, other: Fx | float | int) -> Fx:
-        if isinstance(other, (int, float)):
-            other = fx(other)
+    def __mod__(self, other: 'Fx' | float | int) -> 'Fx':
+        other = self._to_fx(other)
+        if other is NotImplemented: return NotImplemented
 
         a, b, scale = self._align(other)
 
@@ -259,70 +269,46 @@ class Fx:
         result._normalize()
         return result
 
-    #--- Right hand ---#
-    def __radd__(self, other: int | float) -> Fx:
+    # --- Right hand (Refactored for Cleanliness) ---#
+    # These still rely on Fx(other) in the implementation, which needs fx()
+    def __radd__(self, other: int | float) -> 'Fx':
         return self + other
 
-    def __rsub__(self, other: int | float) -> Fx:
-        return Fx(other) - self
+    def __rsub__(self, other: int | float) -> 'Fx':
+        return fx(other) - self
 
-    def __rmul__(self, other: int | float) -> Fx:
+    def __rmul__(self, other: int | float) -> 'Fx':
         return self * other
 
-    def __rtruediv__(self, other: int | float) -> Fx:
-        return Fx(other) / self
+    def __rtruediv__(self, other: int | float) -> 'Fx':
+        return fx(other) / self
 
-    def __rfloordiv__(self, other: int | float) -> Fx:
-        return Fx(other) // self
+    def __rfloordiv__(self, other: int | float) -> 'Fx':
+        return fx(other) // self
 
-    def __rmod__(self, other: int | float) -> Fx:
-        return Fx(other) % self
+    def __rmod__(self, other: int | float) -> 'Fx':
+        return fx(other) % self
 
-    def __rpow__(self, other: int | float) -> Fx:
-        return Fx(other) ** self
+    def __rpow__(self, other: int | float) -> 'Fx':
+        return fx(other) ** self
 
-    #--- In-place operators ---#
-    def __iadd__(self, other: Fx | int | float) -> Fx:
-        result = self + other
-        self.value = result.value
-        self.scale = result.scale
-        return self
+    # --- In-place operators (FIXED) ---#
+    # These methods must be removed to enforce immutability.
+    # Python automatically handles `a += b` by doing `a = a.__add__(b)`
+    # if the in-place operator is absent, which preserves immutability.
+    # The following are explicitly removed:
 
-    def __isub__(self, other: Fx | int | float) -> Fx:
-        result = self - other
-        self.value = result.value
-        self.scale = result.scale
-        return self
+    # def __iadd__(self, other: Fx | int | float) -> Fx: ...
+    # def __isub__(self, other: Fx | int | float) -> Fx: ...
+    # def __imul__(self, other: Fx | int | float) -> Fx: ...
+    # def __itruediv__(self, other: Fx | int | float) -> Fx: ...
+    # def __ifloordiv__(self, other: Fx | int | float) -> Fx: ...
+    # def __ipow__(self, other: Fx | int | float) -> Fx: ...
+    # def __imod__(self, other: Fx | int | float) -> Fx: ...
 
-    def __imul__(self, other: Fx | int | float) -> Fx:
-        result = self * other
-        self.value = result.value
-        self.scale = result.scale
-        return self
-
-    def __itruediv__(self, other: Fx | int | float) -> Fx:
-        result = self / other
-        self.value = result.value
-        self.scale = result.scale
-        return self
-
-    def __ifloordiv__(self, other: Fx | int | float) -> Fx:
-        result = self // other
-        self.value = result.value
-        self.scale = result.scale
-        return self
-
-    def __ipow__(self, other: Fx | int | float) -> Fx:
-        result = self ** other
-        self.value = result.value
-        self.scale = result.scale
-        return self
-
-    def __imod__(self, other: Fx | int | float) -> Fx:
-        result = self % other
-        self.value = result.value
-        self.scale = result.scale
-        return self
+    def is_integer(self) -> bool:
+        """Checks if the Fx number represents an integer value."""
+        return self.scale == 0
 
 
 def fx(value: str | int | float) -> Fx:

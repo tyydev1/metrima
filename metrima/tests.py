@@ -1,7 +1,6 @@
-from tinycolors import cprint, color, clib, cinput
-from .main import _make_divider
-from .fx import Fx, fx
-from .errors import MissingArgument
+from metrima.main import _make_divider
+from metrima.fx import Fx, fx
+from metrima.errors import MissingArgument
 from decimal import Decimal
 
 
@@ -14,6 +13,7 @@ def _create_test(title: str,
                  _show_divisor: bool = True,
                  _decimal: Decimal | None = None,
                  _show_actual_decimal: bool = False) -> bool | tuple[bool, bool] | tuple[bool, bool, bool]:
+    from tinycolors import cprint, color, clib, cinput
     if _python is None and _show_actual_python:
         raise MissingArgument(f"Missing argument for '{_create_test.__name__}': '_python'")
     if _decimal is None and _show_actual_decimal:
@@ -72,6 +72,7 @@ def test_main() -> None:
     Test demo for Metrima
     :return:
     """
+    from tinycolors import cprint, color, clib, cinput
     cprint(_make_divider('='), as_="bold white")
     cprint("             Metrima v0.1.0 Testing Grounds             ", as_="bold white")
     cprint("        Metrima Demo, Metrima VS Python VS Decimal      ", as_="bold white")
@@ -264,6 +265,7 @@ def test_main() -> None:
     cprint("\n" + _make_divider('='), as_="bold white")
 
 def test_fx():
+    from tinycolors import cprint, color, clib, cinput
     cprint(_make_divider('='), as_="bold white")
     cprint("             Metrima v0.1.0 Testing Grounds             ", as_="bold white")
     cprint(f"       Metrima's {color.bg.black}Fx{clib.reset} testing      ", as_="bold white")
@@ -776,6 +778,7 @@ def test_fx():
     cprint("="*40, as_="bold white")
 
 def menu():
+    from tinycolors import cprint, color, clib, cinput
     cprint(_make_divider('='), as_="bold white")
     cprint("             Metrima v0.1.0 Testing Grounds              ", as_="bold white")
     cprint(" Welcome to Metrima! A small, comprehensive math library.", as_="bold white")
