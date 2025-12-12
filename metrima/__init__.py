@@ -1,7 +1,9 @@
 from .main import _make_divider, add, subtract, mul, div, sigma, sigma_noiter
 from .fx import Fx, fx
 from .errors import UnexpectedTypeError, ConstantError
-from .tests import test_main, test_fx
+from .tests import test_main, test_fx, test_decorators, test_lib, test_timeunits
+from .timeunits import Hour, Minute, Second, Millisecond, second, minute, hour, ms
+from .decorators import legacy, timed, repeat, memo, mimic, attribute
 from .constant import Constant
 from .center_text import center_text
 from .exists import exists
@@ -25,7 +27,19 @@ __all__ = [
 
     "test_main",
     "test_fx",
+    "test_decorators",
+    "test_lib",
+    "test_timeunits",
     "Constant",
+
+    "Hour",
+    "Minute",
+    "Second",
+    "Millisecond",
+    "second",
+    "minute",
+    "hour",
+    "ms",
 
     "center_text",
     "exists",
@@ -56,7 +70,14 @@ __all__ = [
     "duplicate",
     "verify",
     "chop",
+
+    "legacy",
+    "timed", 
+    "repeat", 
+    "memo", 
+    "mimic", 
+    "attribute",
 ]
 
-__version__ = "0.2.5"
+__version__ = "0.3.0"
 __author__ = "Razka Rizaldi"

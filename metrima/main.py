@@ -1,6 +1,6 @@
 from metrima.fx import Fx, fx
 
-def _make_chopr(divisor: str = "-",
+def _make_divider(divisor: str = "-",
                   count: int = 60) -> str:
     return divisor*count
 

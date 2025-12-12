@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Optional, Generator, Final
+from typing import Any, Iterable, List, Optional, Generator, Final, Tuple
 from metrima.fx import Fx
 
 def length(collection: list | dict | str) -> int:
@@ -295,3 +295,18 @@ def is_whole(number: int | float | Fx) -> bool:
         return number % 1 == 0
 
     return False
+
+def indexed(collection: Iterable) -> Generator[Tuple[int, Any], None, None]:
+    """Generates a sequence of index-value pairs from an iterable sequence.
+
+    Args:
+        collection (Iterable): The sequence or iterable object to be indexed.
+
+    Yields:
+        Generator[Tuple[int, Any], None, None]: A tuple containing the current index and the item.
+    """
+    i: int = 0
+
+    for item in collection:
+        yield i, item
+        i += 1
