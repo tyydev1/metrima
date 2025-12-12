@@ -1,20 +1,56 @@
-
 # Metrima
 
-A small, comprehensive math library with fixed-point arithmetic precision.
+A small, comprehensive math library with fixed-point arithmetic precision and useful utilities.
+
+[![PyPI version](https://badge.fury.io/py/metrima.svg)](https://badge.fury.io/py/metrima)
+[![Python](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
 
-Metrima is a Python math library that implements the `Fx` (Fixed-point) class to provide precise decimal arithmetic without the floating-point precision issues common in standard Python operations.
+Metrima is a Python math library that provides precise decimal arithmetic through the `Fx` (Fixed-point) class, eliminating floating-point precision issues. Beyond arithmetic, it includes time unit handling, functional utilities, decorators, and mathematical constants.
 
 ## Features
 
-- **Fixed-Point Arithmetic**: Avoid floating-point precision errors
-- **Full Operator Support**: All standard math operations (+, -, *, /, //, %, **)
+### Fixed-Point Arithmetic (`Fx`)
+
+- **Precise Decimal Operations**: Avoid floating-point precision errors
+- **Full Operator Support**: All standard math operations (`+`, `-`, `*`, `/`, `//`, `%`, `**`)
+- **Immutable Design**: Thread-safe and predictable behavior
 - **Type Conversions**: Seamless conversion between `Fx`, `int`, `float`, and `str`
 - **Comparison Operations**: Complete set of comparison operators
-- **In-place Operations**: Support for `+=`, `-=`, `*=`, etc.
 - **Unary Operations**: Negation, absolute value, and rounding
+
+### Time Units
+
+- **Time Arithmetic**: Hour, Minute, Second, Millisecond classes
+- **Automatic Conversions**: Seamless operations between different time units
+- **Precision Handling**: Maintains millisecond precision with automatic overflow
+
+### Utility Functions (`lib`)
+
+- String manipulation: `trim`, `chop`, `locate`
+- Collection operations: `length`, `invert`, `combinelst`, `push_back`, `attach`
+- Type checking: `is_whole`, `is_whitespace`, `exists`
+- Iteration utilities: `span`, `indexed`
+- Deep copying: `duplicate`
+- Validation: `has`, `verify`
+
+### Decorators
+
+- `@timed`: Measure execution time
+- `@memo`: Memoization with configurable cache
+- `@repeat`: Execute functions multiple times
+- `@legacy`: Mark deprecated functions
+- `@mimic`: Copy function metadata
+- `@attribute`: Custom property-like descriptor
+
+### Mathematical Constants
+
+- Common constants: `PI`, `E`, `GOLDEN_RATIO`
+- Physical constants: `GRAVITY`, `SPEED_OF_LIGHT`, `PLANCK_CONSTANT`
+- Chemical constants: `BOLTZMANN_CONSTANT`, `AVOGADRO_NUMBER`, `GAS_CONSTANT`
+- Special values: `INFINITE`, `NAN`
 
 ## Installation
 
@@ -23,6 +59,8 @@ pip install metrima
 ```
 
 ## Quick Start
+
+### Fixed-Point Arithmetic
 
 ```python
 from metrima import Fx, fx
@@ -44,6 +82,67 @@ d = (Fx(2.5) + Fx(3.5)) * Fx(4) - Fx(10) / Fx(2)
 print(d)  # 19.0
 ```
 
+### Time Units
+
+```python
+from metrima import Hour, Minute, Second, hour, minute, second
+
+# Create time values
+duration = Hour(2) + Minute(30)
+print(duration)  # 2h 30m (displayed as seconds internally)
+
+# Arithmetic with different units
+result = hour(1) - minute(15)
+print(second(result))  # 2700 seconds
+
+# Comparisons
+print(Minute(60) > Hour(1))  # False
+```
+
+### Decorators
+
+```python
+from metrima import timed, memo, repeat
+
+@timed
+def slow_computation(n):
+    return sum(range(n))
+
+result, duration = slow_computation(1000000)
+print(f"Computed in {duration:.3f}s")
+
+@memo
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+@repeat(increment_counter)(count=5)
+def task():
+    print("Running task...")
+```
+
+### Utility Functions
+
+```python
+from metrima import span, chop, trim, duplicate
+
+# Iteration
+for i in span(5):
+    print(i)  # 0, 1, 2, 3, 4
+
+# String operations
+words = chop("hello,world,python", ",")
+print(words)  # ['hello', 'world', 'python']
+
+clean = trim("   hello world   ")
+print(clean)  # "hello world"
+
+# Deep copy
+original = [1, [2, 3]]
+copy = duplicate(original)
+```
+
 ## Why Metrima?
 
 Standard Python floating-point arithmetic can produce unexpected results:
@@ -56,64 +155,9 @@ Standard Python floating-point arithmetic can produce unexpected results:
 Fx(0.1) + Fx(0.2)  # 0.3 ✨
 ```
 
-## The Fx Class
-
-The `Fx` class stores numbers as scaled integers, maintaining precision by tracking the decimal scale separately.
-
-### Creating Fx Objects
-
-```python
-# From string (recommended for decimals)
-x = Fx("3.14159")
-
-# From int
-y = Fx(42)
-
-# From float
-z = Fx(2.5)
-
-# Using the fx() convenience function
-w = fx("1.23")
-```
-
-### Arithmetic Operations
-
-```python
-a = Fx("10.5")
-b = Fx("2.5")
-
-a + b   # Addition: 13.0
-a - b   # Subtraction: 8.0
-a * b   # Multiplication: 26.25
-a / b   # Division: 4.2
-a // b  # Floor division: 4.0
-a % b   # Modulo: 0.5
-a ** 2  # Power: 110.25
-```
-
-### Comparisons
-
-```python
-Fx("2.0") == Fx("2")    # True
-Fx(3) != 3              # False
-Fx("1.5") > Fx("1.4")   # True
-Fx("1.2") < 2           # True
-```
-
-### Type Conversions
-
-```python
-x = Fx("3.14")
-
-float(x)  # 3.14
-int(x)    # 3
-str(x)    # "3.14"
-bool(x)   # True
-```
-
 ## Testing
 
-Metrima includes comprehensive test suites comparing its accuracy against both standard Python arithmetic and Python's `Decimal` class.
+Metrima includes comprehensive test suites covering all functionality.
 
 ### Run Interactive Tests
 
@@ -121,51 +165,82 @@ Metrima includes comprehensive test suites comparing its accuracy against both s
 metrimatest
 ```
 
-This launches an interactive menu where you can choose:
+This launches an interactive menu with options:
+
 1. **Competition Demo** - Compare Metrima vs Python vs Decimal
-2. **Fx Class Testing** - Detailed unit tests for the Fx class
+2. **Fx Class Testing** - Unit tests for fixed-point arithmetic
+3. **Decorators Testing** - Test all decorator functionality
+4. **Library Functions Testing** - Test utility functions
+5. **TimeUnits Testing** - Test time arithmetic
 
 ### Test from Code
 
 ```python
-from metrima import test_main
+from metrima import test_main, test_fx, test_decorators, test_lib, test_timeunits
 
-test_main()  # Run the full test suite
+test_main()       # Run competition tests
+test_fx()         # Test Fx class
+test_decorators() # Test decorators
+test_lib()        # Test library functions
+test_timeunits()  # Test time units
 ```
 
 ## API Reference
 
-### Basic Functions
+### Core Functions
 
 ```python
-from metrima import add, subtract, mul, div
+from metrima import add, subtract, mul, div, sigma
 
 add(a, b)       # Addition
 subtract(a, b)  # Subtraction
 mul(a, b)       # Multiplication
 div(a, b)       # Division
+sigma(lst)      # Sum of list elements
 ```
 
-### Fx Methods
+### Fx Class Methods
 
-- `__add__`, `__sub__`, `__mul__`, `__truediv__`, `__floordiv__`, `__mod__`, `__pow__`
-- `__neg__`, `__pos__`, `__abs__`, `__round__`
-- `__eq__`, `__ne__`, `__lt__`, `__le__`, `__gt__`, `__ge__`
-- `__int__`, `__float__`, `__str__`, `__repr__`, `__bool__`
+**Arithmetic**: `__add__`, `__sub__`, `__mul__`, `__truediv__`, `__floordiv__`, `__mod__`, `__pow__`
+
+**Unary**: `__neg__`, `__pos__`, `__abs__`, `__round__`
+
+**Comparisons**: `__eq__`, `__ne__`, `__lt__`, `__le__`, `__gt__`, `__ge__`
+
+**Conversions**: `__int__`, `__float__`, `__str__`, `__repr__`, `__bool__`
+
+**Utility**: `is_zero()`, `is_positive()`, `is_negative()`, `is_integer()`, `copy()`
+
+### Time Unit Classes
+
+**Classes**: `Hour`, `Minute`, `Second`, `Millisecond`
+
+**Converters**: `hour()`, `minute()`, `second()`, `ms()`
+
+All time units support arithmetic operations, comparisons, and automatic conversions.
 
 ## Requirements
 
 - Python >= 3.14
-- `tinycolors` (for colorized test output)
+- `tinycolors` >= 0.5.1.3 (for colorized output)
 
 ## Version
 
-Current version: **0.2.0**
+Current version: **0.3.0**
 
 ## License
 
-MIT
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Repository
+
+GitHub: [https://github.com/tyydev1/metrima](https://github.com/tyydev1/metrima)
+
+## Authors
+
+- **Razka Rizaldi** - [@razkarizaldi](mailto:razka.rizaldis@gmail.com)
+- **tyydev1** - [@tyydev1](mailto:torchist@proton.me)
