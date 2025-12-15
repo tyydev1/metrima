@@ -1,6 +1,6 @@
-from metrima.main import _make_divider
-from metrima.fx import Fx, fx
-from metrima.errors import MissingArgument
+from metrima.math.main import _make_divider
+from metrima.core.fx import Fx, fx
+from metrima.utils.errors import MissingArgument
 from decimal import Decimal
 
 def _create_test(title: str,
@@ -781,7 +781,7 @@ def test_decorators():
     Comprehensive unit test for all decorators.
     """
     from tinycolors import cprint, color, clib
-    from metrima.decorators import legacy, timed, repeat, memo, mimic, attribute
+    from metrima.utils.decorators import legacy, timed, repeat, memo, mimic, attribute
     import time
     
     cprint(_make_divider('='), as_="bold white")
@@ -1432,8 +1432,8 @@ def test_timeunits():
     Unit tests for `metrima.timeunits` arithmetic, comparisons,
     and millisecond remainder preservation.
     """
-    from tinycolors import cprint, color, clib
-    from metrima.timeunits import Hour, Minute, Second, Millisecond
+    from tinycolors import cprint
+    from metrima.units.time import Hour, Minute, Second, Millisecond
 
     cprint(_make_divider('='), as_="bold white")
     cprint("            Metrima timeunits Test Suite            ", as_="bold white")
@@ -1537,6 +1537,752 @@ def test_timeunits():
     cprint(_make_divider('='), as_='bold white')
     print()
 
+def test_weight_units():
+    """
+    Comprehensive test suite for Metrima weight units.
+    Tests conversions, arithmetic operations, and cross-system compatibility.
+    """
+    from metrima.units.weight import oz, lb, kg, mcg, mg, tonne, gram, grain, ton
+    from tinycolors import cprint, color, clib
+    
+    cprint(_make_divider('='), as_="bold white")
+    cprint("             Metrima v0.1.0 Testing Grounds             ", as_="bold white")
+    cprint(f"       Metrima's {color.bg.black}Weight Units{clib.reset} testing      ", as_="bold white")
+    cprint(_make_divider('='), as_="bold white")
+    print()
+
+    test_count = 0
+    pass_count = 0
+
+    cprint("Weight Unit Testing", as_="bold white on black")
+    print()
+
+    pass_local = 0
+    total_local = 6
+
+    cprint("Basic Unit Creation", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    expected1 = "1"
+    actual1 = str(kg(1).__kilogram__())
+    cprint(f'kg(1).__kilogram__() = {actual1}', "cyan")
+
+    expected2 = "1000"
+    actual2 = str(kg(1).__gram__())
+    cprint(f'kg(1).__gram__() = {actual2}', "cyan")
+
+    expected3 = "2.20462262185"
+    actual3 = str(kg(1).__pound__())
+    cprint(f'kg(1).__pound__() = {actual3}', "cyan")
+
+    expected4 = "1"
+    actual4 = str(lb(1).__pound__())
+    cprint(f'lb(1).__pound__() = {actual4}', "cyan")
+
+    expected5 = "0.45359237"
+    actual5 = str(lb(1).__kilogram__())
+    cprint(f'lb(1).__kilogram__() = {actual5}', "cyan")
+
+    expected6 = "16"
+    actual6 = str(lb(1).__ounce__())
+    cprint(f'lb(1).__ounce__() = {actual6}', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+    if actual5 == expected5:
+        pass_local += 1
+    if actual6 == expected6:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Float Input Handling (Bug Fix Verification)", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = kg(1.5)
+    expected1 = "1.5"
+    actual1 = str(w1.__kilogram__())
+    cprint(f'kg(1.5).__kilogram__() = {actual1}', "cyan")
+
+    expected2 = "1500"
+    actual2 = str(w1.__gram__())
+    cprint(f'kg(1.5).__gram__() = {actual2}', "cyan")
+
+    expected3 = "1500000"
+    actual3 = str(w1.__milligram__())
+    cprint(f'kg(1.5).__milligram__() = {actual3}', "cyan")
+
+    expected4 = "1500000000"
+    actual4 = str(w1.__microgram__())
+    cprint(f'kg(1.5).__microgram__() = {actual4}', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 5
+
+    cprint("Metric System Conversions", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    expected1 = "1000000"
+    actual1 = str(kg(1).__microgram__())
+    cprint(f'kg(1).__microgram__() = {actual1} mcg', "cyan")
+
+    expected2 = "1000000"
+    actual2 = str(kg(1).__milligram__())
+    cprint(f'kg(1).__milligram__() = {actual2} mg', "cyan")
+
+    expected3 = "0.001"
+    actual3 = str(kg(1).__tonne__())
+    cprint(f'kg(1).__tonne__() = {actual3} tonnes', "cyan")
+
+    expected4 = "2500"
+    actual4 = str(gram(2.5).__milligram__())
+    cprint(f'gram(2.5).__milligram__() = {actual4} mg', "cyan")
+
+    expected5 = "500"
+    actual5 = str(tonne(0.5).__kilogram__())
+    cprint(f'tonne(0.5).__kilogram__() = {actual5} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+    if actual5 == expected5:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 5
+
+    cprint("Imperial System Conversions", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    expected1 = "7000"
+    actual1 = str(lb(1).__grain__())
+    cprint(f'lb(1).__grain__() = {actual1} grains', "cyan")
+
+    expected2 = "437.5"
+    actual2 = str(oz(1).__grain__())
+    cprint(f'oz(1).__grain__() = {actual2} grains', "cyan")
+
+    expected3 = "0.000446428571428571"
+    actual3 = str(grain(1).__pound__())
+    cprint(f'grain(1).__pound__() = {actual3} lb', "cyan")
+
+    expected4 = "2240"
+    actual4 = str(ton(1).__pound__())
+    cprint(f'ton(1).__pound__() = {actual4} lb', "cyan")
+
+    expected5 = "8"
+    actual5 = str(oz(0.5).__pound__())
+    cprint(f'oz(0.5).__pound__() = {actual5} lb', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+    if str(float(oz(0.5).__pound__())) == "0.03125":
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 5
+
+    cprint("Cross-System Conversions", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    expected1 = "453.59237"
+    actual1 = str(lb(1).__gram__())
+    cprint(f'lb(1).__gram__() = {actual1} g', "cyan")
+
+    expected2 = "28.349523125"
+    actual2 = str(oz(1).__gram__())
+    cprint(f'oz(1).__gram__() = {actual2} g', "cyan")
+
+    expected3 = "0.06479891"
+    actual3 = str(grain(1).__gram__())
+    cprint(f'grain(1).__gram__() = {actual3} g', "cyan")
+
+    expected4 = "35.27396194958041"
+    actual4 = str(kg(1).__ounce__())
+    cprint(f'kg(1).__ounce__() = {actual4} oz', "cyan")
+
+    expected5 = "15432.358352941431"
+    actual5 = str(kg(1).__grain__())
+    cprint(f'kg(1).__grain__() = {actual5} grains', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+    if actual5 == expected5:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Metric Addition (Same System)", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = kg(2) + kg(3)
+    expected1 = "5"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(2) + kg(3) = {actual1} kg', "cyan")
+
+    result2 = gram(500) + gram(250)
+    expected2 = "750"
+    actual2 = str(result2.__gram__())
+    cprint(f'gram(500) + gram(250) = {actual2} g', "cyan")
+
+    result3 = mg(100) + mg(50)
+    expected3 = "150"
+    actual3 = str(result3.__milligram__())
+    cprint(f'mg(100) + mg(50) = {actual3} mg', "cyan")
+
+    result4 = kg(1.5) + gram(500)
+    expected4 = "2"
+    actual4 = str(result4.__kilogram__())
+    cprint(f'kg(1.5) + gram(500) = {actual4} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Imperial Addition (Same System)", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = lb(2) + lb(3)
+    expected1 = "5"
+    actual1 = str(result1.__pound__())
+    cprint(f'lb(2) + lb(3) = {actual1} lb', "cyan")
+
+    result2 = oz(8) + oz(8)
+    expected2 = "16"
+    actual2 = str(result2.__ounce__())
+    cprint(f'oz(8) + oz(8) = {actual2} oz', "cyan")
+
+    result3 = grain(1000) + grain(500)
+    expected3 = "1500"
+    actual3 = str(result3.__grain__())
+    cprint(f'grain(1000) + grain(500) = {actual3} grains', "cyan")
+
+    result4 = lb(1) + oz(8)
+    expected4 = "1.5"
+    actual4 = str(result4.__pound__())
+    cprint(f'lb(1) + oz(8) = {actual4} lb', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 3
+
+    cprint("Cross-System Addition (Returns Metric)", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = kg(1) + lb(1)
+    expected1 = "1.45359237"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(1) + lb(1) = {actual1} kg', "cyan")
+
+    result2 = gram(500) + oz(1)
+    expected2 = "528.349523125"
+    actual2 = str(result2.__gram__())
+    cprint(f'gram(500) + oz(1) = {actual2} g', "cyan")
+
+    result3 = lb(2) + kg(1)
+    expected3 = "2.20462262185"
+    actual3 = str(result3.__kilogram__())
+    cprint(f'lb(2) + kg(1) = {actual3} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Subtraction Operations", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = kg(5) - kg(2)
+    expected1 = "3"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(5) - kg(2) = {actual1} kg', "cyan")
+
+    result2 = lb(10) - lb(3)
+    expected2 = "7"
+    actual2 = str(result2.__pound__())
+    cprint(f'lb(10) - lb(3) = {actual2} lb', "cyan")
+
+    result3 = kg(2) - gram(500)
+    expected3 = "1.5"
+    actual3 = str(result3.__kilogram__())
+    cprint(f'kg(2) - gram(500) = {actual3} kg', "cyan")
+
+    result4 = kg(2) - lb(1)
+    expected4 = "1.54640763"
+    actual4 = str(result4.__kilogram__())
+    cprint(f'kg(2) - lb(1) = {actual4} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Multiplication Operations", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = kg(2) * kg(3)
+    expected1 = "6"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(2) * kg(3) = {actual1} kg', "cyan")
+
+    result2 = lb(4) * lb(2)
+    expected2 = "8"
+    actual2 = str(result2.__pound__())
+    cprint(f'lb(4) * lb(2) = {actual2} lb', "cyan")
+
+    result3 = gram(100) * gram(5)
+    expected3 = "500"
+    actual3 = str(result3.__gram__())
+    cprint(f'gram(100) * gram(5) = {actual3} g', "cyan")
+
+    result4 = kg(2) * lb(2)
+    expected4 = "1.8143695"
+    actual4 = str(result4.__kilogram__())
+    cprint(f'kg(2) * lb(2) = {actual4} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Division Operations", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    result1 = kg(10) / kg(2)
+    expected1 = "5"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(10) / kg(2) = {actual1} kg', "cyan")
+
+    result2 = lb(15) / lb(3)
+    expected2 = "5"
+    actual2 = str(result2.__pound__())
+    cprint(f'lb(15) / lb(3) = {actual2} lb', "cyan")
+
+    result3 = gram(1000) / gram(4)
+    expected3 = "250"
+    actual3 = str(result3.__gram__())
+    cprint(f'gram(1000) / gram(4) = {actual3} g', "cyan")
+
+    result4 = kg(10) / lb(2)
+    expected4 = "11.0231131092"
+    actual4 = str(result4.__kilogram__())
+    cprint(f'kg(10) / lb(2) = {actual4} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 3
+
+    cprint("Unit Wrapper Functions", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = gram(1000)
+    result1 = kg(w1)
+    expected1 = "1"
+    actual1 = str(result1.__kilogram__())
+    cprint(f'kg(gram(1000)) = {actual1} kg', "cyan")
+
+    w2 = lb(16)
+    result2 = oz(w2)
+    expected2 = "256"
+    actual2 = str(result2.__ounce__())
+    cprint(f'oz(lb(16)) = {actual2} oz', "cyan")
+
+    w3 = kg(2.5)
+    result3 = lb(w3)
+    expected3 = "5.51155655462"
+    actual3 = str(result3.__pound__())
+    cprint(f'lb(kg(2.5)) = {actual3} lb', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 4
+
+    cprint("Complex Fractional Values", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = kg(2.567)
+    expected1 = "2567"
+    actual1 = str(w1.__gram__())
+    cprint(f'kg(2.567).__gram__() = {actual1} g', "cyan")
+
+    w2 = lb(3.14159)
+    expected2 = "50.26544"
+    actual2 = str(w2.__ounce__())
+    cprint(f'lb(3.14159).__ounce__() = {actual2} oz', "cyan")
+
+    w3 = gram(1.234)
+    expected3 = "1234"
+    actual3 = str(w3.__milligram__())
+    cprint(f'gram(1.234).__milligram__() = {actual3} mg', "cyan")
+
+    w4 = oz(0.5)
+    expected4 = "14.1747615625"
+    actual4 = str(w4.__gram__())
+    cprint(f'oz(0.5).__gram__() = {actual4} g', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+    if actual4 == expected4:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 3
+
+    cprint("Very Small Units (Precision Test)", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = mcg(500)
+    expected1 = "0.5"
+    actual1 = str(w1.__milligram__())
+    cprint(f'mcg(500).__milligram__() = {actual1} mg', "cyan")
+
+    w2 = mg(0.001)
+    expected2 = "1"
+    actual2 = str(w2.__microgram__())
+    cprint(f'mg(0.001).__microgram__() = {actual2} mcg', "cyan")
+
+    w3 = grain(0.5)
+    expected3 = "32.399455"
+    actual3 = str(w3.__milligram__())
+    cprint(f'grain(0.5).__milligram__() = {actual3} mg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 3
+
+    cprint("Very Large Units", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = tonne(5)
+    expected1 = "5000"
+    actual1 = str(w1.__kilogram__())
+    cprint(f'tonne(5).__kilogram__() = {actual1} kg', "cyan")
+
+    w2 = ton(2)
+    expected2 = "4480"
+    actual2 = str(w2.__pound__())
+    cprint(f'ton(2).__pound__() = {actual2} lb', "cyan")
+
+    w3 = tonne(1)
+    expected3 = "1016.0469088"
+    actual3 = str(ton(w3).__kilogram__())
+    cprint(f'ton(tonne(1)).__kilogram__() = {actual3} kg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    pass_local = 0
+    total_local = 3
+
+    cprint("Chained Conversions", as_="bold yellow")
+    cprint('-'*60, as_="bold white")
+
+    w1 = kg(1)
+    result1 = gram(lb(oz(w1)))
+    expected1 = "1000"
+    actual1 = str(result1.__gram__())
+    cprint(f'gram(lb(oz(kg(1)))).__gram__() = {actual1} g', "cyan")
+
+    w2 = lb(1)
+    result2 = kg(gram(mg(w2)))
+    expected2 = "0.45359237"
+    actual2 = str(result2.__kilogram__())
+    cprint(f'kg(gram(mg(lb(1)))).__kilogram__() = {actual2} kg', "cyan")
+
+    w3 = tonne(0.001)
+    result3 = mg(gram(w3))
+    expected3 = "1000000"
+    actual3 = str(result3.__milligram__())
+    cprint(f'mg(gram(tonne(0.001))).__milligram__() = {actual3} mg', "cyan")
+
+    cprint('-'*60, as_="bold white")
+
+    if actual1 == expected1:
+        pass_local += 1
+    if actual2 == expected2:
+        pass_local += 1
+    if actual3 == expected3:
+        pass_local += 1
+
+    test_count += 1
+    if pass_local == total_local:
+        pass_count += 1
+        cprint(f"Pass, {pass_local} out of {total_local}", as_="bold green")
+    else:
+        cprint(f"Fail, {pass_local} out of {total_local}", as_="bold red")
+
+    print()
+
+    cprint("="*60, as_="bold white")
+    cprint(f"TOTAL: {pass_count} out of {test_count} test containers passed", as_="bold white on black")
+    if pass_count == test_count:
+        cprint("ALL TEST CONTAINERS PASS", as_="bold green")
+    else:
+        cprint(f"{test_count - pass_count} test containers failed", as_="bold red")
+    cprint("="*60, as_="bold white")
+
 def menu():
     from tinycolors import cprint, color, clib, cinput
     cprint(_make_divider('='), as_="bold white")
@@ -1550,6 +2296,7 @@ def menu():
     cprint('3. Decorators Testing', as_="italic bright magenta")
     cprint('4. Metrimalib Testing', as_="italic bright cyan")
     cprint('5. TimeUnits Testing', as_="italic bright green")
+    cprint('6. Weight Unit Testing', as_="italic bright yellow")
     user_choice = cinput(f"{color.italic}Which test would you like to run? ", as_="dim default")
     print()
 
@@ -1562,8 +2309,10 @@ def menu():
         test_decorators()
     elif user_choice in ["4", "lib", "library", "metrimalib", "l"]:
         test_lib()
-    elif user_choice in ["5", "timeunits", "t"]:
+    elif user_choice in ["5", "timeunits", "time", "t"]:
         test_timeunits()
+    elif user_choice in ["6", "weight", "weightunit", "w"]:
+        test_weight_units()
     elif user_choice in ["quit", "exit", "q", "x"]:
         exit(0)
     else:

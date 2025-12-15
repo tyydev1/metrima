@@ -1,34 +1,11 @@
-from typing import Optional, Tuple, List, Union
+from typing import Optional, Union
 import warnings
 
-from metrima.fx import Fx
-from metrima.lib import is_whole
+from metrima.core.fx import Fx
 
 Numeric = Union[int, float]
 
-def downgrade_float_fx(value: float, chain: List[Tuple[int, str]]) -> Tuple[int, Optional[Tuple[str, Fx]]]:
-    """
-    Downgrades a float through a chain of conversion factors until we get a whole number.
-    
-    :param value: Original float value.
-    :param chain: List of (factor, unit_name) tuples, e.g., [(60, "minutes"), (60, "seconds"), (1000, "milliseconds")].
-    :return: (whole_value: int, leftover: Optional[Tuple[str, Fx]]).
-    """
-    current_val = Fx(value)
-    
-    for i, (factor, unit_name) in enumerate(chain):
-        current_val *= Fx(factor)
-        
-        if is_whole(current_val):
-            remaining_chain = chain[i+1:]
-            for next_factor, _ in remaining_chain:
-                current_val *= Fx(next_factor)
-            return int(current_val), None
-            
-    return int(current_val), (unit_name, current_val)
-
-
-class TimeUnit():
+class TimeUnit:
     """
     Base class for all time units (Hour, Minute, Second, Millisecond).
     """
@@ -90,14 +67,14 @@ class TimeUnit():
             f"Subclass {self.__class__.__name__} must implement the {self.__hour__.__name__} method."
         )
     
-    def __ms__(self) -> None:
+    def __millisecond__(self) -> int:
         """
         Type casting to milliseconds. ms(self)
 
         :param self: The instance of the class
         """
         raise NotImplementedError(
-            f"Subclass {self.__class__.__name__} must implement the {self.__ms__.__name__} method."
+            f"Subclass {self.__class__.__name__} must implement the {self.__millisecond__.__name__} method."
         )
     
     def __add__(self, other: Union[int, float, 'TimeUnit']) -> 'Second':
@@ -109,9 +86,9 @@ class TimeUnit():
         - If `other` is numeric, it is interpreted as seconds.
         """
         if isinstance(other, TimeUnit):
-            total_ms = self.__ms__() + other.__ms__()
+            total_ms = self.__millisecond__() + other.__millisecond__()
         elif isinstance(other, (int, float)):
-            total_ms = self.__ms__() + int(float(other) * 1000)
+            total_ms = self.__millisecond__() + int(float(other) * 1000)
         else:
             return NotImplemented
 
@@ -124,9 +101,9 @@ class TimeUnit():
     def __sub__(self, other: Union[int, float, 'TimeUnit']) -> 'Second':
         """Subtract and return a `Second` instance (SI base)."""
         if isinstance(other, TimeUnit):
-            total_ms = self.__ms__() - other.__ms__()
+            total_ms = self.__millisecond__() - other.__millisecond__()
         elif isinstance(other, (int, float)):
-            total_ms = self.__ms__() - int(float(other) * 1000)
+            total_ms = self.__millisecond__() - int(float(other) * 1000)
         else:
             return NotImplemented
 
@@ -135,9 +112,9 @@ class TimeUnit():
     def __rsub__(self, other: Union[int, float, 'TimeUnit']) -> 'Second':
         """Right-side subtraction: numeric - TimeUnit or TimeUnit - TimeUnit."""
         if isinstance(other, TimeUnit):
-            total_ms = other.__ms__() - self.__ms__()
+            total_ms = other.__millisecond__() - self.__millisecond__()
         elif isinstance(other, (int, float)):
-            total_ms = int(float(other) * 1000) - self.__ms__()
+            total_ms = int(float(other) * 1000) - self.__millisecond__()
         else:
             return NotImplemented
 
@@ -147,7 +124,7 @@ class TimeUnit():
         """Scale a time value by a numeric factor, returning `Second`."""
         if not isinstance(other, (int, float)):
             return NotImplemented
-        total_ms = int(self.__ms__() * float(other))
+        total_ms = int(self.__millisecond__() * float(other))
         return second(total_ms / 1000)
 
     def __rmul__(self, other: Union[int, float]) -> 'Second':
@@ -160,14 +137,14 @@ class TimeUnit():
         - If dividing by another TimeUnit, returns a float ratio (self/other).
         """
         if isinstance(other, TimeUnit):
-            other_ms = other.__ms__()
+            other_ms = other.__millisecond__()
             if other_ms == 0:
                 raise ZeroDivisionError("division by zero TimeUnit")
-            return self.__ms__() / other_ms
+            return self.__millisecond__() / other_ms
         if isinstance(other, (int, float)):
             if float(other) == 0:
                 raise ZeroDivisionError("division by zero")
-            total_ms = int(self.__ms__() / float(other))
+            total_ms = int(self.__millisecond__() / float(other))
             return second(total_ms / 1000)
         return NotImplemented
 
@@ -175,24 +152,23 @@ class TimeUnit():
         """Right division: numeric / TimeUnit -> ratio (float)."""
         if not isinstance(other, (int, float)):
             return NotImplemented
-        denom = self.__ms__()
+        denom = self.__millisecond__()
         if denom == 0:
             raise ZeroDivisionError("division by zero TimeUnit")
         return (float(other) * 1000) / denom
 
-    # Comparison operators based on milliseconds
     def __eq__(self, other: object) -> bool:
         if isinstance(other, TimeUnit):
-            return self.__ms__() == other.__ms__()
+            return self.__millisecond__() == other.__millisecond__()
         if isinstance(other, (int, float)):
-            return self.__ms__() == int(float(other) * 1000)
+            return self.__millisecond__() == int(float(other) * 1000)
         return NotImplemented
 
     def __lt__(self, other: Union[int, float, 'TimeUnit']) -> bool:
         if isinstance(other, TimeUnit):
-            return self.__ms__() < other.__ms__()
+            return self.__millisecond__() < other.__millisecond__()
         if isinstance(other, (int, float)):
-            return self.__ms__() < int(float(other) * 1000)
+            return self.__millisecond__() < int(float(other) * 1000)
         return NotImplemented
 
     def __le__(self, other: Union[int, float, 'TimeUnit']) -> bool:
@@ -203,6 +179,8 @@ class TimeUnit():
 
     def __ge__(self, other: Union[int, float, 'TimeUnit']) -> bool:
         return not self < other
+
+
 class Hour(TimeUnit):
     """
     Hour-specific time unit.
@@ -230,6 +208,7 @@ class Hour(TimeUnit):
             return
         
         if isinstance(raw, float):
+            from metrima.units.utils import downgrade_float_fx
             chain = [(60, "minutes"), (60, "seconds"), (1000, "milliseconds")]
             whole, leftover = downgrade_float_fx(raw, chain)
 
@@ -247,26 +226,53 @@ class Hour(TimeUnit):
                 self.value = whole // CONVERSION_FACTOR
                     
         if isinstance(raw, TimeUnit):
-            self.value = raw.__hour__()
+            total_ms = raw.__millisecond__()
+            self.value = total_ms // 3_600_000
+            remaining_ms = total_ms % 3_600_000
+            
+            if remaining_ms >= 60_000:
+                self.minutes = remaining_ms // 60_000
+                remaining_ms %= 60_000
+            
+            if remaining_ms >= 1000:
+                self.seconds = remaining_ms // 1000
+                remaining_ms %= 1000
+            
+            if remaining_ms > 0:
+                self.milliseconds = remaining_ms
+
+    def __minute__(self) -> int:
+        total_minutes = self.value * 60
+        if self.minutes is not None:
+            total_minutes += int(self.minutes)
+        if self.seconds is not None:
+            total_minutes += int(self.seconds) // 60
+        if self.milliseconds is not None:
+            total_minutes += int(self.milliseconds) // 60_000
+        return total_minutes
 
     def __second__(self) -> int:
-        return self.value * 3600
-    
-    def __ms__(self) -> int:
-        return self.value * 3_600_000
-    
-    def __repr__(self) -> str:
-        return f"Hour({self.value})"
-    
-    def __str__(self) -> str:
-        parts = [f"{self.value}h"]
+        total_seconds = self.value * 3600
         if self.minutes is not None:
-            parts.append(f"{int(self.minutes)}m")
+            total_seconds += int(self.minutes) * 60
         if self.seconds is not None:
-            parts.append(f"{int(self.seconds)}s")
+            total_seconds += int(self.seconds)
         if self.milliseconds is not None:
-            parts.append(f"{int(self.milliseconds)}ms")
-        return " ".join(parts)
+            total_seconds += int(self.milliseconds) // 1000
+        return total_seconds
+    
+    def __millisecond__(self) -> int:
+        total_ms = self.value * 3_600_000
+        if self.minutes is not None:
+            total_ms += int(self.minutes) * 60_000
+        if self.seconds is not None:
+            total_ms += int(self.seconds) * 1000
+        if self.milliseconds is not None:
+            total_ms += int(self.milliseconds)
+        return total_ms
+    
+    def __hour__(self) -> int:
+        return self.value
     
     def __repr__(self) -> str:
         return f"Hour({self.value})"
@@ -281,7 +287,14 @@ class Hour(TimeUnit):
             parts.append(f"{int(self.milliseconds)}ms")
         return " ".join(parts)
 
+
 class Minute(TimeUnit):
+    """
+    Minute-specific time unit.
+    """
+    seconds: Optional[Union[int, Fx]] = None
+    milliseconds: Optional[Union[int, Fx]] = None
+
     def _process_value(self) -> None:
         """
         Minute-specific logic for processing the input value.
@@ -294,14 +307,14 @@ class Minute(TimeUnit):
                 "Minutes can only be instantiated from another TimeUnit instance or a numeric type."
             )
         
-        self.seconds: None | int | float = None
-        self.milliseconds: None | int | float = None
-
-        raw: int | float = self.raw_value
+        raw: Union[int, float, TimeUnit] = self.raw_value
+        
         if isinstance(raw, int):
             self.value: int = raw
             return
+            
         if isinstance(raw, float):
+            from metrima.units.utils import downgrade_float_fx
             chain = [(60, "seconds"), (1000, "milliseconds")]
             whole, leftover = downgrade_float_fx(raw, chain)
 
@@ -316,24 +329,43 @@ class Minute(TimeUnit):
                 setattr(self, unit_name, val_fx)
 
         if isinstance(raw, TimeUnit):
-            self.value = raw.__minute__()
+            total_ms = raw.__millisecond__()
+            self.value = total_ms // 60_000
+            remaining_ms = total_ms % 60_000
+            
+            if remaining_ms >= 1000:
+                self.seconds = remaining_ms // 1000
+                remaining_ms %= 1000
+            
+            if remaining_ms > 0:
+                self.milliseconds = remaining_ms
+
+    def __hour__(self) -> int:
+        total_minutes = self.value
+        if self.seconds is not None:
+            total_minutes += int(self.seconds) // 60
+        if self.milliseconds is not None:
+            total_minutes += int(self.milliseconds) // 60_000
+        return total_minutes // 60
+    
+    def __minute__(self) -> int:
+        return self.value
 
     def __second__(self) -> int:
-        return self.value * 60
-    
-    def __ms__(self) -> int:
-        return self.value * 60_000
-    
-    def __repr__(self) -> str:
-        return f"Minute({self.value})"
-    
-    def __str__(self) -> str:
-        parts = [f"{self.value}m"]
+        total_seconds = self.value * 60
         if self.seconds is not None:
-            parts.append(f"{int(self.seconds)}s")
+            total_seconds += int(self.seconds)
         if self.milliseconds is not None:
-            parts.append(f"{int(self.milliseconds)}ms")
-        return " ".join(parts)
+            total_seconds += int(self.milliseconds) // 1000
+        return total_seconds
+    
+    def __millisecond__(self) -> int:
+        total_ms = self.value * 60_000
+        if self.seconds is not None:
+            total_ms += int(self.seconds) * 1000
+        if self.milliseconds is not None:
+            total_ms += int(self.milliseconds)
+        return total_ms
     
     def __repr__(self) -> str:
         return f"Minute({self.value})"
@@ -346,7 +378,13 @@ class Minute(TimeUnit):
             parts.append(f"{int(self.milliseconds)}ms")
         return " ".join(parts)
 
+
 class Second(TimeUnit):
+    """
+    Second-specific time unit.
+    """
+    milliseconds: Optional[Union[int, Fx]] = None
+
     def _process_value(self) -> None:
         """
         Second-specific logic for processing the input value.
@@ -359,22 +397,21 @@ class Second(TimeUnit):
                 "Seconds can only be instantiated from another TimeUnit instance or a numeric type."
             )
 
-        self.milliseconds: None | int | float = None
-
-        raw: int | float = self.raw_value
+        raw: Union[int, float, TimeUnit] = self.raw_value
+        
         if isinstance(raw, int):
             self.value: int = raw
             return
+            
         if isinstance(raw, float):
+            from metrima.units.utils import downgrade_float_fx
             chain = [(1000, "milliseconds")]
             whole, leftover = downgrade_float_fx(raw, chain)
 
             CONVERSION_FACTOR = 1000
-            # `whole` is in milliseconds; compute seconds and leftover ms
             self.value = whole // CONVERSION_FACTOR
             remainder = whole % CONVERSION_FACTOR
             if remainder:
-                # store leftover milliseconds for accurate representation
                 self.milliseconds = remainder
                 warnings.warn(
                     "Float value had millisecond remainder; stored in .milliseconds",
@@ -389,25 +426,33 @@ class Second(TimeUnit):
                 setattr(self, unit_name, val_fx)
 
         if isinstance(raw, TimeUnit):
-            self.value = raw.__second__()
+            total_ms = raw.__millisecond__()
+            self.value = total_ms // 1000
+            remaining_ms = total_ms % 1000
+            
+            if remaining_ms > 0:
+                self.milliseconds = remaining_ms
+
+    def __hour__(self) -> int:
+        total_seconds = self.value
+        if self.milliseconds is not None:
+            total_seconds += int(self.milliseconds) // 1000
+        return total_seconds // 3_600
 
     def __minute__(self) -> int:
-        return self.value // 60
+        total_seconds = self.value
+        if self.milliseconds is not None:
+            total_seconds += int(self.milliseconds) // 1000
+        return total_seconds // 60
     
     def __second__(self) -> int:
         return self.value
     
-    def __ms__(self) -> int:
-        return self.value * 1000
-    
-    def __repr__(self) -> str:
-        return f"Second({self.value})"
-    
-    def __str__(self) -> str:
-        parts = [f"{self.value}s"]
+    def __millisecond__(self) -> int:
+        total_ms = self.value * 1000
         if self.milliseconds is not None:
-            parts.append(f"{int(self.milliseconds)}ms")
-        return " ".join(parts)
+            total_ms += int(self.milliseconds)
+        return total_ms
     
     def __repr__(self) -> str:
         return f"Second({self.value})"
@@ -418,7 +463,12 @@ class Second(TimeUnit):
             parts.append(f"{int(self.milliseconds)}ms")
         return " ".join(parts)
 
+
 class Millisecond(TimeUnit):
+    """
+    Millisecond-specific time unit.
+    """
+    
     def _process_value(self) -> None:
         """
         Millisecond-specific logic for processing the input value.
@@ -440,7 +490,7 @@ class Millisecond(TimeUnit):
         if isinstance(self.raw_value, int):
             self.value = self.raw_value
         else:
-            self.value = self.raw_value.__ms__()
+            self.value = self.raw_value.__millisecond__()
 
     def __hour__(self) -> int:
         return self.value // 3_600_000
@@ -451,7 +501,7 @@ class Millisecond(TimeUnit):
     def __second__(self) -> int:
         return self.value // 1000
     
-    def __ms__(self) -> int:
+    def __millisecond__(self) -> int:
         return self.value
     
     def __repr__(self) -> str:
@@ -459,36 +509,54 @@ class Millisecond(TimeUnit):
     
     def __str__(self) -> str:
         return f"{self.value}ms"
-    
-def second(value: int | 'Second' | 'Hour' | 'Minute' | 'Millisecond') -> Second:
+
+
+def second(value: Union[int, float, 'Second', 'Hour', 'Minute', 'Millisecond']) -> Second:
     """
     Converts the given value to seconds, if possible.
     
-    :param value: Description
-    :type value: int | 'Second' | 'Hour' | 'Minute' | 'Millisecond'
-    :return: Description
+    :param value: Value to convert to seconds
+    :type value: int | float | 'Second' | 'Hour' | 'Minute' | 'Millisecond'
+    :return: Second instance
     :rtype: Second
     """
-    if isinstance(value, (int, float)):
-        return Second(value)
-    else:
-        return Second(value.__second__())
+    return Second(value)
+
+
+def minute(value: Union[int, float, 'Second', 'Hour', 'Minute', 'Millisecond']) -> Minute:
+    """
+    Converts the given value to minutes, if possible.
     
-def minute(value: int | 'Second' | 'Hour' | 'Minute' | 'Millisecond') -> Minute:
-    if isinstance(value, (int, float)):
-        return Minute(value)
-    else:
-        return Minute(value.__minute__())
+    :param value: Value to convert to minutes
+    :type value: int | float | 'Second' | 'Hour' | 'Minute' | 'Millisecond'
+    :return: Minute instance
+    :rtype: Minute
+    """
+    return Minute(value)
+
+
+def hour(value: Union[int, float, 'Second', 'Hour', 'Minute', 'Millisecond']) -> Hour:
+    """
+    Converts the given value to hours, if possible.
     
-def hour(value: int | 'Second' | 'Hour' | 'Minute' | 'Millisecond') -> Hour:
-    if isinstance(value, (int, float)):
-        return Hour(value)
-    else:
-        return Hour(value.__hour__())
+    :param value: Value to convert to hours
+    :type value: int | float | 'Second' | 'Hour' | 'Minute' | 'Millisecond'
+    :return: Hour instance
+    :rtype: Hour
+    """
+    return Hour(value)
+
+
+def ms(value: Union[int, float, 'Second', 'Hour', 'Minute', 'Millisecond']) -> Millisecond:
+    """
+    Converts the given value to milliseconds, if possible.
     
-def ms(value: int | 'Second' | 'Hour' | 'Minute' | 'Millisecond') -> Millisecond:
+    :param value: Value to convert to milliseconds
+    :type value: int | float | 'Second' | 'Hour' | 'Minute' | 'Millisecond'
+    :return: Millisecond instance
+    :rtype: Millisecond
+    """
     if isinstance(value, (int, float)):
         return Millisecond(int(value))
     else:
-        return Millisecond(value.__ms__())
-    
+        return Millisecond(value)

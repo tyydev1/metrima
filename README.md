@@ -1,10 +1,16 @@
-# Metrima
+![Metrima Logo](banners/metrima.png)
 
-A small, comprehensive math library with fixed-point arithmetic precision and useful utilities.
+<div align="center">
+
+**A small, comprehensive math library with fixed-point arithmetic precision and useful utilities.**
 
 [![PyPI version](https://badge.fury.io/py/metrima.svg)](https://badge.fury.io/py/metrima)
 [![Python](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+</div>
+
+_Version 0.3.2 **UnfinishedAlert**: The WeightUnit is unfinished and is currently inaccurate._
 
 ## Overview
 

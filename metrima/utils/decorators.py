@@ -1,5 +1,4 @@
-from metrima.lib import span
-from typing import Callable, Final, Tuple, Any, Type, TypeVar, Dict, Optional
+from typing import Callable, Tuple, Any, Type, TypeVar, Dict, Optional
 import time
 from warnings import warn
 
@@ -14,8 +13,8 @@ def mimic(wrapped: F) -> Callable[[F], F]:
     :return: 
     :rtype: Callable[[Callable[..., Any]], Callable[..., Any]]
     """
-    WRAPPER_ASSIGNED: Final[Tuple[str]] = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
-    WRAPPER_UPDATED: Final[Tuple[str]] = ('__dict__',)
+    WRAPPER_ASSIGNED: Tuple[str] = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
+    WRAPPER_UPDATED: Tuple[str] = ('__dict__',)
 
     def decorator(wrapper: F) -> F:
         for attr in WRAPPER_ASSIGNED:
@@ -57,6 +56,7 @@ def timed(func: F, announce: bool = False) -> F:
     return wrapper
 
 def repeat(func: F, *args, **kwargs) -> F:
+    from metrima.lib import span
     """
     Creates a function factory that returns a decorator.
     The final call (count) dictates how many times 'func' is executed.
@@ -121,6 +121,30 @@ def legacy(message: str = "This is a legacy function and may behave "
         return wrapper
     
     return decorator
+
+def once(func: F) -> F:
+    """Decorator to make a method callable only once
+
+    Args:
+        func (F): The method to decorate
+
+    Raises:
+        RuntimeError: If the method is called more than once
+
+    Returns:
+        F: The decorated method
+    """
+    @mimic(func)
+    def wrapper(self, *args, **kwargs):
+        if not hasattr(self, '_once_called'):
+            self._once_called = set()
+        
+        if func.__name__ in self._once_called:
+            raise RuntimeError(f"{func.__name__} can only be called once")
+        
+        self._once_called.add(func.__name__)
+        return func(self, *args, **kwargs)
+    return wrapper
 
 class attribute:
     """

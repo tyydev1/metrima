@@ -1,4 +1,4 @@
-from metrima.fx import Fx, fx
+from metrima.core.fx import Fx, fx
 
 def _make_divider(divisor: str = "-",
                   count: int = 60) -> str:

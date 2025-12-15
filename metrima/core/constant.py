@@ -1,4 +1,4 @@
-from metrima.errors import ConstantError
+from metrima.utils.errors import ConstantError
 
 class Constant:
     """

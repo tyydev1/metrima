@@ -1,5 +1,5 @@
-from typing import Any, Iterable, List, Optional, Generator, Final, Tuple
-from metrima.fx import Fx
+from typing import Any, Iterable, Optional, Generator, Tuple
+from metrima.core.fx import Fx
 
 def length(collection: list | dict | str) -> int:
     """

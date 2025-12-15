@@ -1,4 +1,4 @@
-from metrima.errors import UnexpectedTypeError
+from metrima.utils.errors import UnexpectedTypeError
 
 class Fx:
     def __init__(self, value: str | float | int) -> None:
@@ -320,5 +320,5 @@ def fx(value: str | int | float) -> Fx:
     return Fx(value)
 
 if __name__ == "__main__":
-    from tests import test_fx
+    from metrima.tests import test_fx
     test_fx()
