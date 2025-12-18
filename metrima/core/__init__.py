@@ -1,4 +1,6 @@
-from .fx import fx, Fx
+# type: ignore
+
+from .fixed import fx, Fx
 from .constant import Constant
 from .temporary import temp, Temporary
 

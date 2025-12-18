@@ -1,3 +1,10 @@
+"""
+Metrima utilities package initialization.
+
+This package provides various utility functions, decorators, and error classes
+for the Metrima library.
+"""
+
 from .center_text import center_text
 from .decorators import mimic, memo, repeat, timed, legacy, attribute, once
 from .errors import UnexpectedTypeError, MissingArgument, ConstantError

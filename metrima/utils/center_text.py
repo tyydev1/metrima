@@ -1,6 +1,25 @@
+"""
+Text centering utility for terminal output.
+
+This module provides a function to center text within the terminal
+window, with fallback behavior for non-terminal environments.
+"""
+
 import os
 
 def center_text(text):
+    """
+    Center text within the terminal window.
+    
+    Splits text into lines, finds the longest line, and centers all
+    non-empty lines within the terminal width. Falls back to 80 columns
+    if terminal size cannot be determined.
+    
+    :param text: The text to center.
+    :type text: str
+    :return: Centered text with appropriate padding.
+    :rtype: str
+    """
     try:
         total_width = os.get_terminal_size().columns
     except OSError:

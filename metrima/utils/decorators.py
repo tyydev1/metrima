@@ -1,22 +1,31 @@
-from typing import Callable, Tuple, Any, Type, TypeVar, Dict, Optional
+"""
+Decorators for function modification and metadata management.
+
+This module provides various decorators for timing, caching, legacy
+function warnings, and other function modifications.
+"""
+
+from __future__ import annotations
+from typing import Callable, Tuple, Any, Type, Dict, Optional
 import time
 from warnings import warn
 
-F = TypeVar('F', bound=Callable[..., Any])
-
-def mimic(wrapped: F) -> Callable[[F], F]:
+def mimic(wrapped: Callable[..., Any]) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
-    Decorated factory to copy metadata from `wrapped` to wrapper function.
+    Decorator factory to copy metadata from `wrapped` to wrapper function.
     
-    :param wrapped:
+    Copies function metadata such as name, docstring, annotations, and
+    dictionary entries from the wrapped function to the wrapper.
+    
+    :param wrapped: The function whose metadata should be copied.
     :type wrapped: Callable[..., Any]
-    :return: 
+    :return: A decorator that applies the metadata copying.
     :rtype: Callable[[Callable[..., Any]], Callable[..., Any]]
     """
-    WRAPPER_ASSIGNED: Tuple[str] = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
-    WRAPPER_UPDATED: Tuple[str] = ('__dict__',)
+    WRAPPER_ASSIGNED: Tuple[str, ...] = ('__module__', '__name__', '__qualname__', '__doc__', '__annotations__')
+    WRAPPER_UPDATED: Tuple[str, ...] = ('__dict__',)
 
-    def decorator(wrapper: F) -> F:
+    def decorator(wrapper: Callable[..., Any]) -> Callable[..., Any]:
         for attr in WRAPPER_ASSIGNED:
             try:
                 value = getattr(wrapped, attr)
@@ -32,15 +41,23 @@ def mimic(wrapped: F) -> Callable[[F], F]:
             except AttributeError:
                 pass
         
-        wrapper.__wrapped__ = wrapped
+        wrapper.__wrapped__ = wrapped # type: ignore
         
         return wrapper
 
     return decorator
 
-def timed(func: F, announce: bool = False) -> F:
+def timed(func: Callable[..., Any], announce: bool = False) -> Callable[..., Any]:
     """
     Measures execution time of a function.
+    
+    :param func: The function to time.
+    :type func: Callable[..., Any]
+    :param announce: If True, prints timing information to stdout.
+                     If False, returns a tuple of (result, duration).
+    :type announce: bool
+    :return: Wrapped function that measures execution time.
+    :rtype: Callable[..., Any]
     """
     @mimic(func)
     def wrapper(*args, **kwargs):
@@ -55,21 +72,32 @@ def timed(func: F, announce: bool = False) -> F:
         return result, duration
     return wrapper
 
-def repeat(func: F, *args, **kwargs) -> F:
-    from metrima.lib import span
+def repeat(func: Callable[..., Any], *args, **kwargs) -> Callable[..., Any]:
     """
     Creates a function factory that returns a decorator.
+    
     The final call (count) dictates how many times 'func' is executed.
     Syntax: `repeat(func, *setup_args)(count)`
     
     :param func: The function that will be executed repeatedly.
-    :param args: Ignored, but included for general function factory flexibility.
-    :param kwargs: Ignored, but included for general function factory flexibility.
+    :type func: Callable[..., Any]
+    :param args: Arguments to pass to the function on each execution.
+    :type args: Any
+    :param kwargs: Keyword arguments to pass to the function on each execution.
+    :type kwargs: Any
     :return: A function waiting for the 'count' argument.
+    :rtype: Callable[..., Any]
     """
+    from metrima.lib import span
+    
     def count_handler(count: int = 3):
         """
         Accepts the 'count' argument and returns the wrapper.
+        
+        :param count: Number of times to execute the function.
+        :type count: int
+        :return: Wrapper function that executes the function count times.
+        :rtype: Callable[..., Any]
         """
         
         def wrapper(*w_args, **w_kwargs):
@@ -84,11 +112,22 @@ def repeat(func: F, *args, **kwargs) -> F:
     
     return count_handler
 
-def memo(clean: bool = True, max_cache: int = 5) -> F:
+def memo(clean: bool | Callable[..., Any] = True, max_cache: int = 5) -> Callable[..., Any]:
+    """
+    Memoization decorator with cache management.
+    
+    :param clean: If True, cleans cache when it exceeds max_cache.
+                  If a callable is provided, applies memoization to it.
+    :type clean: bool | Callable[..., Any]
+    :param max_cache: Maximum number of cached results to keep.
+    :type max_cache: int
+    :return: Memoization decorator or decorated function.
+    :rtype: Callable[..., Any]
+    """
     if callable(clean):
-        return memo(clean=True, max_cache=10)(clean)
+        return memo(clean=True, max_cache=10)(clean) # type: ignore
 
-    def decorator(func: F) -> F:
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         cache: Dict[Tuple[Any, ...], Any] = {}
 
         @mimic(func)
@@ -109,9 +148,17 @@ def memo(clean: bool = True, max_cache: int = 5) -> F:
     return decorator
 
 def legacy(message: str = "This is a legacy function and may behave "
-            "differently from the updated version.") -> F:
+            "differently from the updated version.") -> Callable[..., Any]:
+    """
+    Decorator to mark functions as legacy with deprecation warnings.
     
-    def decorator(func: F) -> F:
+    :param message: Warning message to display when function is called.
+    :type message: str
+    :return: Decorator that adds deprecation warnings to functions.
+    :rtype: Callable[..., Any]
+    """
+    
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @mimic(func)
         def wrapper(*args, **kwargs):
             warn(message, DeprecationWarning, stacklevel=2)
@@ -122,17 +169,15 @@ def legacy(message: str = "This is a legacy function and may behave "
     
     return decorator
 
-def once(func: F) -> F:
-    """Decorator to make a method callable only once
-
-    Args:
-        func (F): The method to decorate
-
-    Raises:
-        RuntimeError: If the method is called more than once
-
-    Returns:
-        F: The decorated method
+def once(func: Callable[..., Any]) -> Callable[..., Any]:
+    """
+    Decorator to make a method callable only once.
+    
+    :param func: The method to decorate.
+    :type func: Callable[..., Any]
+    :return: The decorated method.
+    :rtype: Callable[..., Any]
+    :raises RuntimeError: If the method is called more than once.
     """
     @mimic(func)
     def wrapper(self, *args, **kwargs):
@@ -149,11 +194,23 @@ def once(func: F) -> F:
 class attribute:
     """
     Acts as a descriptor that handles attribute access, assignment, and deletion.
+    
+    This class implements the descriptor protocol to create managed
+    attributes with custom getter, setter, and deleter functions.
     """
-
     def __init__(self, fget: Callable[[Any], Any],
                  fset: Optional[Callable[[Any, Any], None]] = None,
                  fdel: Optional[Callable[[Any], None]] = None) -> None:
+        """
+        Initialize an attribute descriptor.
+        
+        :param fget: Getter function for the attribute.
+        :type fget: Callable[[Any], Any]
+        :param fset: Setter function for the attribute (optional).
+        :type fset: Optional[Callable[[Any, Any], None]]
+        :param fdel: Deleter function for the attribute (optional).
+        :type fdel: Optional[Callable[[Any], None]]
+        """
         self.fget = fget
         self.fset = fset
         self.fdel = fdel
@@ -161,11 +218,18 @@ class attribute:
     def __get__(self, inst: Any, owner: Type[Any]) -> Any:
         """
         Handles attribute retrieval.
+        
+        :param inst: The instance the attribute is accessed on.
+        :type inst: Any
+        :param owner: The owner class of the attribute.
+        :type owner: Type[Any]
+        :return: The attribute value.
+        :rtype: Any
+        :raises AttributeError: If the attribute is not readable.
         """
         if inst is None:
             return self
 
-        # Call the stored getter function, passing the instance
         if self.fget is None:
             raise AttributeError("unreadable attribute")
         
@@ -174,6 +238,12 @@ class attribute:
     def __set__(self, instance: Any, value: Any) -> None:
         """
         Handles attribute assignment (e.g., instance.attr = value).
+        
+        :param instance: The instance to set the attribute on.
+        :type instance: Any
+        :param value: The value to set.
+        :type value: Any
+        :raises AttributeError: If the attribute cannot be set.
         """
         if self.fset is None:
             raise AttributeError("can't set attribute")
@@ -183,30 +253,50 @@ class attribute:
     def __delete__(self, instance: Any) -> None:
         """
         Handles attribute deletion (e.g., del instance.attr).
+        
+        :param instance: The instance to delete the attribute from.
+        :type instance: Any
+        :raises AttributeError: If the attribute cannot be deleted.
         """
         if self.fdel is None:
             raise AttributeError("can't delete attribute")
         
         self.fdel(instance)
 
-    # --- Decorator methods for setter and deleter ---
-    
     def setter(self, fset: Callable[[Any, Any], None]) -> 'attribute':
         """
         Decorator method: returns a new Attribute instance with the new setter function.
+        
         Used with the syntax: @attr.setter
+        
+        :param fset: New setter function.
+        :type fset: Callable[[Any, Any], None]
+        :return: New attribute descriptor with updated setter.
+        :rtype: attribute
         """
         return attribute(self.fget, fset, self.fdel)
 
     def deleter(self, fdel: Callable[[Any], None]) -> 'attribute':
         """
         Decorator method: returns a new Attribute instance with the new deleter function.
+        
         Used with the syntax: @attr.deleter
+        
+        :param fdel: New deleter function.
+        :type fdel: Callable[[Any], None]
+        :return: New attribute descriptor with updated deleter.
+        :rtype: attribute
         """
         return attribute(self.fget, self.fset, fdel)
 
 def main() -> None:
-    from tinycolors import cprint, color, clib
+    """
+    Demonstration function showing usage of decorators.
+    
+    This function provides examples of how to use the various decorators
+    defined in this module.
+    """
+    from tinycolors import cprint, color, clib # type: ignore
 
     cprint("=" * 50, as_="bold white")
     cprint("Decorators Demo with TinyColors", as_="bold cyan")
@@ -261,7 +351,7 @@ def main() -> None:
     def fibonacci(n: int) -> int:
         if n <= 1:
             return n
-        return fibonacci(n - 1) + fibonacci(n - 2)
+        return fibonacci(n - 1) + fibonacci(n - 2) # type: ignore
     
     cprint("First call: fibonacci(30) - computing...", as_="italic blue")
     start_time = time.perf_counter()

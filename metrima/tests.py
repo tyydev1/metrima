@@ -1,5 +1,7 @@
+# type: ignore
+from __future__ import annotations
 from metrima.math.main import _make_divider
-from metrima.core.fx import Fx, fx
+from metrima.core.fixed import Fx, fx
 from metrima.utils.errors import MissingArgument
 from decimal import Decimal
 

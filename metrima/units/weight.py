@@ -1,11 +1,27 @@
-from typing import TypeAlias, Union
+"""
+Weight unit classes for representing and converting between different weight/mass units.
 
-from metrima.core.fx import Fx, fx
+This module provides classes for both metric (microgram through tonne) and imperial
+(grain through ton) weight units with full arithmetic operations and conversions.
+"""
+
+from typing import Union
+from typing_extensions import TypeAlias
+
+from metrima.core.fixed import Fx, fx
 from metrima.core.temporary import Temporary, temp
 from metrima.units.utils import ImperialUnit, MetricUnit, downgrade_float_fx
 from metrima.utils.errors import DimensionError
 
 def snap(val):
+    """
+    Snap a value to the nearest integer if very close.
+    
+    :param val: Value to snap.
+    :type val: int | float | Fx
+    :return: Original value or nearest integer if within tolerance.
+    :rtype: int | float | Fx
+    """
     if isinstance(val, (int, float, Fx)):
         val_float = float(val) 
         nearest = round(val_float)
@@ -18,8 +34,11 @@ def is_cross_system(cls, other) -> bool:
     Check if two units belong to different measurement systems.
     
     :param cls: First unit instance.
+    :type cls: Any
     :param other: Second unit instance.
+    :type other: Any
     :return: True if units are from different systems (metric/imperial), False otherwise.
+    :rtype: bool
     """
     return (
         (isinstance(cls, MetricUnit) and isinstance(other, ImperialUnit))
@@ -41,6 +60,7 @@ class WeightUnit:
         Initialize a weight unit.
         
         :param value: Numeric value or another WeightUnit instance to convert from.
+        :type value: NumericInput | WeightUnit
         """
         self.raw_value = value
         self._process_value()
@@ -54,6 +74,7 @@ class WeightUnit:
         
         :raises NotImplementedError: If called on base class.
         """
+        self.value = fx(self.raw_value) # type: ignore
         raise NotImplementedError
 
     def __microgram__(self) -> Fx:
@@ -61,6 +82,7 @@ class WeightUnit:
         Convert to micrograms.
         
         :return: Weight value in micrograms.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -70,6 +92,7 @@ class WeightUnit:
         Convert to milligrams.
         
         :return: Weight value in milligrams.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -79,6 +102,7 @@ class WeightUnit:
         Convert to grams.
         
         :return: Weight value in grams.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -88,6 +112,7 @@ class WeightUnit:
         Convert to kilograms.
         
         :return: Weight value in kilograms.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -97,6 +122,7 @@ class WeightUnit:
         Convert to tonnes (metric tons).
         
         :return: Weight value in tonnes.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -106,6 +132,7 @@ class WeightUnit:
         Convert to grains.
         
         :return: Weight value in grains.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -115,6 +142,7 @@ class WeightUnit:
         Convert to ounces.
         
         :return: Weight value in ounces.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -124,6 +152,7 @@ class WeightUnit:
         Convert to pounds.
         
         :return: Weight value in pounds.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -133,6 +162,7 @@ class WeightUnit:
         Convert to imperial long tons.
         
         :return: Weight value in long tons.
+        :rtype: Fx
         :raises NotImplementedError: If not implemented by subclass.
         """
         raise NotImplementedError
@@ -145,7 +175,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight to add.
+        :type other: WeightUnit
         :return: New WeightUnit with sum.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -159,12 +191,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() + other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __radd__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand addition (other + self).
         
         :param other: Weight to add.
+        :type other: WeightUnit
         :return: New WeightUnit with sum.
+        :rtype: WeightUnit
         """
         return self.__add__(other)
     
@@ -176,7 +212,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight to subtract.
+        :type other: WeightUnit
         :return: New WeightUnit with difference.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -190,12 +228,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() - other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rsub__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand subtraction (other - self).
         
         :param other: Weight to subtract from.
+        :type other: WeightUnit
         :return: New WeightUnit with difference.
+        :rtype: WeightUnit
         """
         return self.__sub__(other)
     
@@ -207,7 +249,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight to multiply by.
+        :type other: WeightUnit
         :return: New WeightUnit with product.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -221,12 +265,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() * other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rmul__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand multiplication (other * self).
         
         :param other: Weight to multiply by.
+        :type other: WeightUnit
         :return: New WeightUnit with product.
+        :rtype: WeightUnit
         """
         return self.__mul__(other)
     
@@ -238,7 +286,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight to divide by.
+        :type other: WeightUnit
         :return: New WeightUnit with quotient.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -252,12 +302,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() / other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rtruediv__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand division (other / self).
         
         :param other: Weight to divide.
+        :type other: WeightUnit
         :return: New WeightUnit with quotient.
+        :rtype: WeightUnit
         """
         return self.__truediv__(other)
     
@@ -269,7 +323,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight to divide by.
+        :type other: WeightUnit
         :return: New WeightUnit with floor division result.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -283,12 +339,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() // other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rfloordiv__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand floor division (other // self).
         
         :param other: Weight to divide.
+        :type other: WeightUnit
         :return: New WeightUnit with floor division result.
+        :rtype: WeightUnit
         """
         return self.__floordiv__(other)
     
@@ -300,7 +360,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight exponent.
+        :type other: WeightUnit
         :return: New WeightUnit with power result.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -314,12 +376,16 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() ** other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rpow__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand power (other ** self).
         
         :param other: Weight base.
+        :type other: WeightUnit
         :return: New WeightUnit with power result.
+        :rtype: WeightUnit
         """
         return self.__pow__(other)
     
@@ -331,7 +397,9 @@ class WeightUnit:
         or pounds for imperial-imperial operations.
         
         :param other: Weight divisor.
+        :type other: WeightUnit
         :return: New WeightUnit with modulo result.
+        :rtype: WeightUnit
         :raises DimensionError: If other is not a WeightUnit.
         """
         if not isinstance(other, WeightUnit):
@@ -345,20 +413,25 @@ class WeightUnit:
         if is_cross_system(self, other=other):
             return kg(self.__kilogram__() % other.__kilogram__())
         
+        return WeightUnit(0)  # Fallback, should not reach here.
+        
     def __rmod__(self, other: 'WeightUnit') -> 'WeightUnit':
         """
         Right-hand modulo (other % self).
         
         :param other: Weight dividend.
+        :type other: WeightUnit
         :return: New WeightUnit with modulo result.
+        :rtype: WeightUnit
         """
         return self.__mod__(other)
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         """
         Return string representation of the weight unit.
         
         :return: String in format "ClassName(value=X)".
+        :rtype: str
         """
         components = [f"value={self.value}"]
         for attr in ['kilograms', 'grams', 'milligrams', 'micrograms', 
@@ -367,23 +440,42 @@ class WeightUnit:
                 components.append(f"{attr}={getattr(self, attr)}")
         return f"{self.__class__.__name__}({', '.join(components)})"
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
+        """
+        Equality comparison.
+        
+        :param other: Value to compare with.
+        :type other: Any
+        :return: True if weights are equal.
+        :rtype: bool
+        :raises DimensionError: If other is not a WeightUnit.
+        """
         if not isinstance(other, WeightUnit):
-            return DimensionError(self, other)
+            raise DimensionError(self, other)
         if isinstance(self, MetricWeightUnit) and isinstance(other, MetricWeightUnit):
-             return self.__microgram__() == other.__microgram__()
+            return self.__microgram__() == other.__microgram__() # type: ignore
         if isinstance(self, ImperialWeightUnit) and isinstance(other, ImperialWeightUnit):
-             return self.__grain__() == other.__grain__()
-        return self.__kilogram__() == other.__kilogram__()
+            return self.__grain__() == other.__grain__() # type: ignore
+        return self.__kilogram__() == other.__kilogram__() # type: ignore
 
 
 class MetricWeightUnit(WeightUnit, MetricUnit):
-    """Base class for metric system weight units (microgram through tonne)."""
+    """
+    Base class for metric system weight units (microgram through tonne).
+    
+    This serves as a marker class to identify metric weight units.
+    All metric weight units should inherit from this class.
+    """
     pass
 
 
 class ImperialWeightUnit(WeightUnit, ImperialUnit):
-    """Base class for imperial system weight units (grain through ton)."""
+    """
+    Base class for imperial system weight units (grain through ton).
+    
+    This serves as a marker class to identify imperial weight units.
+    All imperial weight units should inherit from this class.
+    """
     pass
 
 
@@ -417,6 +509,7 @@ class Microgram(MetricWeightUnit):
         Get value in micrograms.
         
         :return: Value in micrograms.
+        :rtype: Fx
         """
         return self.value
 
@@ -425,6 +518,7 @@ class Microgram(MetricWeightUnit):
         Convert to milligrams.
         
         :return: Value in milligrams (micrograms / 1000).
+        :rtype: Fx
         """
         return self.value / 1000
 
@@ -433,6 +527,7 @@ class Microgram(MetricWeightUnit):
         Convert to grams.
         
         :return: Value in grams (micrograms / 1,000,000).
+        :rtype: Fx
         """
         return self.value / 1_000_000
 
@@ -441,6 +536,7 @@ class Microgram(MetricWeightUnit):
         Convert to kilograms.
         
         :return: Value in kilograms (micrograms / 1,000,000,000).
+        :rtype: Fx
         """
         return self.value / 1_000_000_000
 
@@ -449,6 +545,7 @@ class Microgram(MetricWeightUnit):
         Convert to tonnes.
         
         :return: Value in tonnes (micrograms / 1,000,000,000,000).
+        :rtype: Fx
         """
         return self.value / 1_000_000_000_000
 
@@ -457,6 +554,7 @@ class Microgram(MetricWeightUnit):
         Convert to grains (imperial).
         
         :return: Value in grains (1 grain = 64798.91 micrograms).
+        :rtype: Fx
         """
         return self.value / Fx("64798.91")
 
@@ -465,6 +563,7 @@ class Microgram(MetricWeightUnit):
         Convert to ounces (imperial).
         
         :return: Value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -473,6 +572,7 @@ class Microgram(MetricWeightUnit):
         Convert to pounds (imperial).
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__kilogram__() * Kilogram.KG_TO_LB
     
@@ -481,6 +581,7 @@ class Microgram(MetricWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -539,6 +640,7 @@ class Milligram(MetricWeightUnit):
         Convert to micrograms.
         
         :return: Total value in micrograms (whole mg + fractional mcg).
+        :rtype: Fx
         """
         total = fx(self.value) * 1000
         if hasattr(self, 'micrograms'):
@@ -550,6 +652,7 @@ class Milligram(MetricWeightUnit):
         Get value in milligrams.
         
         :return: Total value in milligrams.
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'micrograms'):
@@ -561,6 +664,7 @@ class Milligram(MetricWeightUnit):
         Convert to grams.
         
         :return: Value in grams.
+        :rtype: Fx
         """
         return self.__milligram__() / 1000
 
@@ -569,6 +673,7 @@ class Milligram(MetricWeightUnit):
         Convert to kilograms.
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return self.__milligram__() / 1_000_000
 
@@ -577,6 +682,7 @@ class Milligram(MetricWeightUnit):
         Convert to tonnes.
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__milligram__() / 1_000_000_000
 
@@ -585,6 +691,7 @@ class Milligram(MetricWeightUnit):
         Convert to grains (imperial).
         
         :return: Value in grains (1 grain = 64.79891 mg).
+        :rtype: Fx
         """
         return self.__milligram__() / Fx("64.79891")
 
@@ -593,6 +700,7 @@ class Milligram(MetricWeightUnit):
         Convert to ounces (imperial).
         
         :return: Value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -601,6 +709,7 @@ class Milligram(MetricWeightUnit):
         Convert to pounds (imperial).
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__kilogram__() * Kilogram.KG_TO_LB
 
@@ -609,6 +718,7 @@ class Milligram(MetricWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -678,6 +788,7 @@ class Gram(MetricWeightUnit):
         Convert to micrograms.
         
         :return: Total value in micrograms.
+        :rtype: Fx
         """
         return self.__gram__() * 1_000_000
 
@@ -686,6 +797,7 @@ class Gram(MetricWeightUnit):
         Convert to milligrams.
         
         :return: Total value in milligrams.
+        :rtype: Fx
         """
         return self.__gram__() * 1000
 
@@ -694,6 +806,7 @@ class Gram(MetricWeightUnit):
         Get value in grams.
         
         :return: Total value in grams (whole g + fractional mg + fractional mcg).
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'milligrams'):
@@ -707,6 +820,7 @@ class Gram(MetricWeightUnit):
         Convert to kilograms.
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return self.__gram__() / 1000
 
@@ -715,6 +829,7 @@ class Gram(MetricWeightUnit):
         Convert to tonnes.
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__gram__() / 1_000_000
 
@@ -723,6 +838,7 @@ class Gram(MetricWeightUnit):
         Convert to grains (imperial).
         
         :return: Value in grains.
+        :rtype: Fx
         """
         return self.__milligram__() / Fx("64.79891")
 
@@ -731,6 +847,7 @@ class Gram(MetricWeightUnit):
         Convert to ounces (imperial).
         
         :return: Value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -739,6 +856,7 @@ class Gram(MetricWeightUnit):
         Convert to pounds (imperial).
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__kilogram__() * Kilogram.KG_TO_LB
 
@@ -747,6 +865,7 @@ class Gram(MetricWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -828,6 +947,7 @@ class Kilogram(MetricWeightUnit):
         Convert to micrograms.
         
         :return: Total value in micrograms.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000_000
 
@@ -836,6 +956,7 @@ class Kilogram(MetricWeightUnit):
         Convert to milligrams.
         
         :return: Total value in milligrams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000
 
@@ -844,6 +965,7 @@ class Kilogram(MetricWeightUnit):
         Convert to grams.
         
         :return: Total value in grams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1000
 
@@ -852,6 +974,7 @@ class Kilogram(MetricWeightUnit):
         Get value in kilograms.
         
         :return: Total value in kilograms (whole kg + fractional components).
+        :rtype: Fx
         """
         total_kg = fx(self.value)
         if hasattr(self, 'grams'):
@@ -867,6 +990,7 @@ class Kilogram(MetricWeightUnit):
         Convert to tonnes.
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__kilogram__() / 1000
     
@@ -875,6 +999,7 @@ class Kilogram(MetricWeightUnit):
         Convert to pounds (imperial).
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__kilogram__() * self.KG_TO_LB
 
@@ -883,6 +1008,7 @@ class Kilogram(MetricWeightUnit):
         Convert to ounces (imperial).
         
         :return: Value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -891,6 +1017,7 @@ class Kilogram(MetricWeightUnit):
         Convert to grains (imperial).
         
         :return: Value in grains.
+        :rtype: Fx
         """
         return self.__milligram__() / Fx("64.79891")
 
@@ -899,6 +1026,7 @@ class Kilogram(MetricWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -967,6 +1095,7 @@ class Tonne(MetricWeightUnit):
         Get value in tonnes.
         
         :return: Total value in tonnes (whole tonnes + fractional components).
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'kilograms'):
@@ -984,6 +1113,7 @@ class Tonne(MetricWeightUnit):
         Convert to kilograms.
         
         :return: Total value in kilograms.
+        :rtype: Fx
         """
         return self.__tonne__() * 1000
 
@@ -992,6 +1122,7 @@ class Tonne(MetricWeightUnit):
         Convert to grams.
         
         :return: Total value in grams.
+        :rtype: Fx
         """
         return self.__tonne__() * 1_000_000
 
@@ -1000,6 +1131,7 @@ class Tonne(MetricWeightUnit):
         Convert to milligrams.
         
         :return: Total value in milligrams.
+        :rtype: Fx
         """
         return self.__tonne__() * 1_000_000_000
     
@@ -1008,6 +1140,7 @@ class Tonne(MetricWeightUnit):
         Convert to micrograms.
         
         :return: Total value in micrograms.
+        :rtype: Fx
         """
         return self.__tonne__() * 1_000_000_000_000
 
@@ -1016,6 +1149,7 @@ class Tonne(MetricWeightUnit):
         Convert to pounds (imperial).
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__kilogram__() * Kilogram.KG_TO_LB
     
@@ -1024,6 +1158,7 @@ class Tonne(MetricWeightUnit):
         Convert to ounces (imperial).
         
         :return: Value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -1032,6 +1167,7 @@ class Tonne(MetricWeightUnit):
         Convert to grains (imperial).
         
         :return: Value in grains.
+        :rtype: Fx
         """
         return self.__milligram__() / Fx("64.79891")
     
@@ -1040,6 +1176,7 @@ class Tonne(MetricWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -1080,6 +1217,7 @@ class Grain(ImperialWeightUnit):
         Get value in grains.
         
         :return: Value in grains.
+        :rtype: Fx
         """
         return self.value
 
@@ -1088,6 +1226,7 @@ class Grain(ImperialWeightUnit):
         Convert to ounces.
         
         :return: Value in ounces (grains / 437.5).
+        :rtype: Fx
         """
         return self.value / 437.5
 
@@ -1096,6 +1235,7 @@ class Grain(ImperialWeightUnit):
         Convert to pounds.
         
         :return: Value in pounds (grains / 7000).
+        :rtype: Fx
         """
         return self.value / 7000
 
@@ -1104,6 +1244,7 @@ class Grain(ImperialWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -1112,6 +1253,7 @@ class Grain(ImperialWeightUnit):
         Convert to milligrams (metric).
         
         :return: Value in milligrams (1 grain = 64.79891 mg).
+        :rtype: Fx
         """
         return self.value * Fx("64.79891")
 
@@ -1120,6 +1262,7 @@ class Grain(ImperialWeightUnit):
         Convert to micrograms (metric).
         
         :return: Value in micrograms.
+        :rtype: Fx
         """
         return self.__milligram__() * 1000
 
@@ -1128,6 +1271,7 @@ class Grain(ImperialWeightUnit):
         Convert to grams (metric).
         
         :return: Value in grams.
+        :rtype: Fx
         """
         return self.__milligram__() / 1000
 
@@ -1136,6 +1280,7 @@ class Grain(ImperialWeightUnit):
         Convert to kilograms (metric).
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return self.__milligram__() / 1_000_000
         
@@ -1144,6 +1289,7 @@ class Grain(ImperialWeightUnit):
         Convert to tonnes (metric).
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__kilogram__() / 1000
 
@@ -1202,6 +1348,7 @@ class Ounce(ImperialWeightUnit):
         Get value in ounces.
         
         :return: Total value in ounces (whole oz + fractional grains).
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'grains'):
@@ -1213,6 +1360,7 @@ class Ounce(ImperialWeightUnit):
         Convert to grains.
         
         :return: Total value in grains.
+        :rtype: Fx
         """
         total = fx(self.value) * 437.5
         if hasattr(self, 'grains'):
@@ -1224,6 +1372,7 @@ class Ounce(ImperialWeightUnit):
         Convert to pounds.
         
         :return: Value in pounds.
+        :rtype: Fx
         """
         return self.__ounce__() / 16
     
@@ -1232,6 +1381,7 @@ class Ounce(ImperialWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -1240,6 +1390,7 @@ class Ounce(ImperialWeightUnit):
         Convert to kilograms (metric).
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return (self.__ounce__() / 16) * Pound.LB_TO_KG
     
@@ -1248,6 +1399,7 @@ class Ounce(ImperialWeightUnit):
         Convert to grams (metric).
         
         :return: Value in grams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1000
 
@@ -1256,6 +1408,7 @@ class Ounce(ImperialWeightUnit):
         Convert to milligrams (metric).
         
         :return: Value in milligrams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000
     
@@ -1264,6 +1417,7 @@ class Ounce(ImperialWeightUnit):
         Convert to micrograms (metric).
         
         :return: Value in micrograms.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000_000
 
@@ -1272,6 +1426,7 @@ class Ounce(ImperialWeightUnit):
         Convert to tonnes (metric).
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__kilogram__() / 1000
 
@@ -1343,6 +1498,7 @@ class Pound(ImperialWeightUnit):
         Get value in pounds.
         
         :return: Total value in pounds (whole lb + fractional components).
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'ounces'):
@@ -1356,6 +1512,7 @@ class Pound(ImperialWeightUnit):
         Convert to grains.
         
         :return: Total value in grains.
+        :rtype: Fx
         """
         return self.__pound__() * 7000
 
@@ -1364,6 +1521,7 @@ class Pound(ImperialWeightUnit):
         Convert to ounces.
         
         :return: Total value in ounces.
+        :rtype: Fx
         """
         return self.__pound__() * 16
 
@@ -1372,6 +1530,7 @@ class Pound(ImperialWeightUnit):
         Convert to imperial long tons.
         
         :return: Value in long tons.
+        :rtype: Fx
         """
         return self.__pound__() / 2240
 
@@ -1380,6 +1539,7 @@ class Pound(ImperialWeightUnit):
         Convert to kilograms (metric).
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return self.__pound__() * self.LB_TO_KG
 
@@ -1388,6 +1548,7 @@ class Pound(ImperialWeightUnit):
         Convert to grams (metric).
         
         :return: Value in grams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1000
 
@@ -1396,6 +1557,7 @@ class Pound(ImperialWeightUnit):
         Convert to milligrams (metric).
         
         :return: Value in milligrams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000
     
@@ -1404,6 +1566,7 @@ class Pound(ImperialWeightUnit):
         Convert to micrograms (metric).
         
         :return: Value in micrograms.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000_000
 
@@ -1412,6 +1575,7 @@ class Pound(ImperialWeightUnit):
         Convert to tonnes (metric).
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__kilogram__() / 1000
 
@@ -1495,6 +1659,7 @@ class Ton(ImperialWeightUnit):
         Get value in long tons.
         
         :return: Total value in long tons (whole tons + fractional components).
+        :rtype: Fx
         """
         total = fx(self.value)
         if hasattr(self, 'pounds'):
@@ -1510,6 +1675,7 @@ class Ton(ImperialWeightUnit):
         Convert to pounds.
         
         :return: Total value in pounds.
+        :rtype: Fx
         """
         return self.__ton__() * 2240
 
@@ -1518,6 +1684,7 @@ class Ton(ImperialWeightUnit):
         Convert to ounces.
         
         :return: Total value in ounces.
+        :rtype: Fx
         """
         return self.__ton__() * 35840
 
@@ -1526,6 +1693,7 @@ class Ton(ImperialWeightUnit):
         Convert to grains.
         
         :return: Total value in grains.
+        :rtype: Fx
         """
         return self.__ton__() * 15_680_000
 
@@ -1534,6 +1702,7 @@ class Ton(ImperialWeightUnit):
         Convert to kilograms (metric).
         
         :return: Value in kilograms.
+        :rtype: Fx
         """
         return self.__pound__() * Pound.LB_TO_KG
 
@@ -1542,6 +1711,7 @@ class Ton(ImperialWeightUnit):
         Convert to grams (metric).
         
         :return: Value in grams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1000
 
@@ -1550,6 +1720,7 @@ class Ton(ImperialWeightUnit):
         Convert to milligrams (metric).
         
         :return: Value in milligrams.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000
     
@@ -1558,6 +1729,7 @@ class Ton(ImperialWeightUnit):
         Convert to micrograms (metric).
         
         :return: Value in micrograms.
+        :rtype: Fx
         """
         return self.__kilogram__() * 1_000_000_000
 
@@ -1566,6 +1738,7 @@ class Ton(ImperialWeightUnit):
         Convert to tonnes (metric).
         
         :return: Value in tonnes.
+        :rtype: Fx
         """
         return self.__kilogram__() / 1000
 
@@ -1577,7 +1750,9 @@ def kg(value: 'WeightUnit | NumericInput') -> Kilogram:
     Create a Kilogram instance from a value or another weight unit.
     
     :param value: Numeric value in kilograms, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Kilogram instance.
+    :rtype: Kilogram
     """
     if isinstance(value, WeightUnit):
         return Kilogram(value.__kilogram__())
@@ -1589,7 +1764,9 @@ def gram(value: 'WeightUnit | NumericInput') -> Gram:
     Create a Gram instance from a value or another weight unit.
     
     :param value: Numeric value in grams, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Gram instance.
+    :rtype: Gram
     """
     if isinstance(value, WeightUnit):
         return Gram(value.__gram__())
@@ -1601,7 +1778,9 @@ def mg(value: 'WeightUnit | NumericInput') -> Milligram:
     Create a Milligram instance from a value or another weight unit.
     
     :param value: Numeric value in milligrams, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Milligram instance.
+    :rtype: Milligram
     """
     if isinstance(value, WeightUnit):
         return Milligram(value.__milligram__())
@@ -1613,7 +1792,9 @@ def mcg(value: 'WeightUnit | NumericInput') -> Microgram:
     Create a Microgram instance from a value or another weight unit.
     
     :param value: Numeric value in micrograms, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Microgram instance.
+    :rtype: Microgram
     """
     if isinstance(value, WeightUnit):
         return Microgram(value.__microgram__())
@@ -1625,7 +1806,9 @@ def tonne(value: 'WeightUnit | NumericInput') -> Tonne:
     Create a Tonne instance from a value or another weight unit.
     
     :param value: Numeric value in tonnes, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Tonne instance.
+    :rtype: Tonne
     """
     if isinstance(value, WeightUnit):
         return Tonne(value.__tonne__())
@@ -1637,7 +1820,9 @@ def lb(value: 'WeightUnit | NumericInput') -> Pound:
     Create a Pound instance from a value or another weight unit.
     
     :param value: Numeric value in pounds, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Pound instance.
+    :rtype: Pound
     """
     if isinstance(value, WeightUnit):
         return Pound(value.__pound__())
@@ -1649,7 +1834,9 @@ def oz(value: 'WeightUnit | NumericInput') -> Ounce:
     Create an Ounce instance from a value or another weight unit.
     
     :param value: Numeric value in ounces, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Ounce instance.
+    :rtype: Ounce
     """
     if isinstance(value, WeightUnit):
         return Ounce(value.__ounce__())
@@ -1661,7 +1848,9 @@ def ton(value: 'WeightUnit | NumericInput') -> Ton:
     Create a Ton instance from a value or another weight unit.
     
     :param value: Numeric value in long tons, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Ton instance.
+    :rtype: Ton
     """
     if isinstance(value, WeightUnit):
         return Ton(value.__ton__())
@@ -1673,7 +1862,9 @@ def grain(value: 'WeightUnit | NumericInput') -> Grain:
     Create a Grain instance from a value or another weight unit.
     
     :param value: Numeric value in grains, or another WeightUnit to convert.
+    :type value: WeightUnit | NumericInput
     :return: Grain instance.
+    :rtype: Grain
     """
     if isinstance(value, WeightUnit):
         return Grain(value.__grain__())
