@@ -1,8 +1,8 @@
 # type: ignore
 from __future__ import annotations
-from metrima.math.main import _make_divider
-from metrima.core.fixed import Fx, fx
-from metrima.utils.errors import MissingArgument
+from .math.main import _make_divider
+from .core.fixed import Fx, fx
+from .utils.errors import MissingArgument
 from decimal import Decimal
 
 def _create_test(title: str,
@@ -14,7 +14,7 @@ def _create_test(title: str,
                  _show_divisor: bool = True,
                  _decimal: Decimal | None = None,
                  _show_actual_decimal: bool = False) -> bool | tuple[bool, bool] | tuple[bool, bool, bool]:
-    from tinycolors import cprint, color, clib, cinput
+    from tinycolors import cprint, color, clib
     if _python is None and _show_actual_python:
         raise MissingArgument(f"Missing argument for '{_create_test.__name__}': '_python'")
     if _decimal is None and _show_actual_decimal:
@@ -75,7 +75,7 @@ def test_main() -> None:
     """
     from tinycolors import cprint, color, clib, cinput
     cprint(_make_divider('='), as_="bold white")
-    cprint("             Metrima v0.1.0 Testing Grounds             ", as_="bold white")
+    cprint("           Metrima v0.3.5.1 Testing Grounds             ", as_="bold white")
     cprint("        Metrima Demo, Metrima VS Python VS Decimal      ", as_="bold white")
     cprint(_make_divider('='), as_="bold white")
     total = 0

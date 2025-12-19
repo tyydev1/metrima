@@ -10,7 +10,7 @@
 
 </div>
 
-_Version 0.3.2 **UnfinishedAlert**: The WeightUnit is unfinished and is currently inaccurate._
+_Version 0.3.x **UnfinishedAlert**: The WeightUnit is unfinished and is currently inaccurate._
 
 ## Overview
 

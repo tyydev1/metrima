@@ -7,7 +7,7 @@ string processing, and basic type checking used throughout the library.
 
 from __future__ import annotations
 from typing import Any, Iterable, Optional, Generator, Tuple
-from metrima.core.fixed import Fx
+from .core.fixed import Fx
 
 def length(collection: list | dict | str) -> int:
     """

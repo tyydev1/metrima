@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 project = 'Metrima'
 copyright = '2025, Razka Rizaldi'
 author = 'Razka Rizaldi'
-release = '0.3.5'
+release = '0.3.5.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

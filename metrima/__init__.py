@@ -37,5 +37,5 @@ __all__ = [
     "chop",
 ]
 
-__version__ = "0.3.2"
+__version__ = "0.3.5.2"
 __author__ = "Razka Rizaldi"
